@@ -1,15 +1,17 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.Collection;
 import java.util.HashMap;
 
+@Slf4j
 @Service
 public class FilmService {
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
@@ -35,16 +37,19 @@ public class FilmService {
     }
 
     private void checkDuration(Film film) {
-        if (film.getDuration().isNegative()) {
+        if (film.getDuration() < 0) {
             throw new ConditionsNotMetException("Duration must be positive");
         }
     }
 
     public Collection<Film> findAll() {
+        log.info("Find all films");
         return films.values();
     }
 
     public Film create(Film film) {
+        log.info("Create film initiated");
+
         checkName(film);
         checkDescription(film);
         checkReleaseDate(film);
@@ -53,11 +58,13 @@ public class FilmService {
         film.setId(getNextId());
         films.put(film.getId(), film);
 
+        log.info("Film created");
         return film;
     }
 
     public Film update(Film film) {
         Long id = film.getId();
+        log.info("Update film initiated. Film Id: {}", id);
 
         if (id == null) {
             throw new ConditionsNotMetException("Id must not be null");
@@ -82,6 +89,8 @@ public class FilmService {
         }
 
         films.put(id, currentFilm);
+
+        log.info("Film updated. Id: {}", id);
         return currentFilm;
     }
 
