@@ -13,23 +13,39 @@ public class FilmService {
     private final LocalDate DATE_LIMIT = LocalDate.of(1895, 12, 28);
     private final HashMap<Long, Film> films = new HashMap<>();
 
+    private void checkName(Film film) {
+        if (film.getName() == null) {
+            throw new ConditionsNotMetException("Name must not be null");
+        }
+    }
+
+    private void checkDescription(Film film) {
+        if (film.getDescription().length() > 200) {
+            throw new ConditionsNotMetException("Description must be no longer than 200 symbols");
+        }
+    }
+
+    private void checkReleaseDate(Film film) {
+        if (film.getReleaseDate().isBefore(DATE_LIMIT)) {
+            throw new ConditionsNotMetException("Release date must be after 28.12.1895");
+        }
+    }
+
+    private void checkDuration(Film film) {
+        if (film.getDuration().isNegative()) {
+            throw new ConditionsNotMetException("Duration must be positive");
+        }
+    }
+
     public Collection<Film> findAll() {
         return films.values();
     }
 
     public Film create(Film film) {
-        if (film.getName() == null) {
-            throw new ConditionsNotMetException("Name must not be null");
-        }
-        if (film.getDescription().length() > 200) {
-            throw new ConditionsNotMetException("Description must be no longer than 200 symbols");
-        }
-        if (film.getReleaseDate().isBefore(DATE_LIMIT)) {
-            throw new ConditionsNotMetException("Release date must be after 28.12.1895");
-        }
-        if (film.getDuration().isNegative()) {
-            throw new ConditionsNotMetException("Duration must be positive");
-        }
+        checkName(film);
+        checkDescription(film);
+        checkReleaseDate(film);
+        checkDuration(film);
 
         film.setId(getNextId());
         films.put(film.getId(), film);
@@ -50,12 +66,15 @@ public class FilmService {
             currentFilm.setName(film.getName());
         }
         if (film.getDescription() != null) {
+            checkDescription(film);
             currentFilm.setDescription(film.getDescription());
         }
         if (film.getDuration() != null) {
+            checkDuration(film);
             currentFilm.setDuration(film.getDuration());
         }
         if (film.getReleaseDate() != null) {
+            checkReleaseDate(film);
             currentFilm.setReleaseDate(film.getReleaseDate());
         }
 
