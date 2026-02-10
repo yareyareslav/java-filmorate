@@ -21,7 +21,7 @@ public class FilmController {
         return filmService.findAll();
     }
 
-    @PutMapping
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Film create(@RequestBody Film film) {
         return filmService.create(film);

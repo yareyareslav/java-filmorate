@@ -14,4 +14,10 @@ public class ErrorController {
     public ErrorResponse handleConditionsNotMet(ConditionsNotMetException e) {
         return new ErrorResponse(e.getMessage());
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleRuntimeErrors(RuntimeException e) {
+        return new ErrorResponse(e.getMessage());
+    }
 }

@@ -21,7 +21,7 @@ public class UserController {
         return userService.findAll();
     }
 
-    @PutMapping
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public User create(@RequestBody User user) {
         return userService.create(user);

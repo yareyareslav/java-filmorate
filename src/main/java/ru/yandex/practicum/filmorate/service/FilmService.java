@@ -5,16 +5,19 @@ import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Collection;
 import java.util.HashMap;
 
 @Service
 public class FilmService {
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     private final LocalDate DATE_LIMIT = LocalDate.of(1895, 12, 28);
     private final HashMap<Long, Film> films = new HashMap<>();
 
     private void checkName(Film film) {
-        if (film.getName() == null) {
+        if (film.getName() == null || film.getName().isBlank()) {
             throw new ConditionsNotMetException("Name must not be null");
         }
     }
