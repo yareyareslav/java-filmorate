@@ -13,6 +13,7 @@ import java.time.LocalDate;
 @Builder
 public class User {
     public interface UpdateUserInfo {}
+
     public interface CreateUserInfo {}
 
     @NotNull(groups = UpdateUserInfo.class)

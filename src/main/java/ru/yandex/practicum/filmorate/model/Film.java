@@ -16,6 +16,7 @@ import java.time.LocalDate;
 @Builder
 public class Film {
     public interface CreateFilmInfo {}
+
     public interface UpdateFilmInfo {}
 
     @NotNull(groups = UpdateFilmInfo.class)
