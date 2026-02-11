@@ -14,7 +14,6 @@ import java.util.HashMap;
 @Slf4j
 @Service
 public class FilmService {
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     private final LocalDate DATE_LIMIT = LocalDate.of(1895, 12, 28);
     private final HashMap<Long, Film> films = new HashMap<>();
 

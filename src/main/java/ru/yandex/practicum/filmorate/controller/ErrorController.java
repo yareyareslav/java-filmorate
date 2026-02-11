@@ -21,13 +21,6 @@ public class ErrorController {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleRuntimeErrors(RuntimeException e) {
-        log.error(e.getMessage());
-        return new ErrorResponse(e.getMessage());
-    }
-
-    @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFound(NotFoundException e) {
         log.error(e.getMessage());
@@ -40,4 +33,10 @@ public class ErrorController {
         return new ErrorResponse("Invalid JSON format. " + e.getMessage());
     }
 
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleRuntimeErrors(RuntimeException e) {
+        log.error(e.getMessage());
+        return new ErrorResponse(e.getMessage());
+    }
 }
