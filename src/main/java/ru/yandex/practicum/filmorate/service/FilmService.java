@@ -6,16 +6,14 @@ import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.HashMap;
 
 @Slf4j
 @Service
 public class FilmService {
-    private final LocalDate DATE_LIMIT = LocalDate.of(1895, 12, 28);
+    private final LocalDate dateLimit = LocalDate.of(1895, 12, 28);
     private final HashMap<Long, Film> films = new HashMap<>();
 
     private void checkName(Film film) {
@@ -31,7 +29,7 @@ public class FilmService {
     }
 
     private void checkReleaseDate(Film film) {
-        if (film.getReleaseDate().isBefore(DATE_LIMIT)) {
+        if (film.getReleaseDate().isBefore(dateLimit)) {
             throw new ConditionsNotMetException("Release date must be after 28.12.1895");
         }
     }
