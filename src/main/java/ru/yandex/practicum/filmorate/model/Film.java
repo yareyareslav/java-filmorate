@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 
 import java.time.LocalDate;
 
@@ -20,14 +21,13 @@ public class Film {
     public interface UpdateFilmInfo {}
 
     @NotNull(groups = UpdateFilmInfo.class)
-    @NotBlank(groups = UpdateFilmInfo.class)
     private Long id;
 
     @NotNull(groups = CreateFilmInfo.class)
     @NotBlank(groups = CreateFilmInfo.class)
     private String name;
 
-    @Max(value = 200, groups = { CreateFilmInfo.class, UpdateFilmInfo.class })
+    @Length(max = 200, groups = { CreateFilmInfo.class, UpdateFilmInfo.class })
     @NotNull(groups = CreateFilmInfo.class)
     @NotBlank(groups = CreateFilmInfo.class)
     private String description;
