@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.Duration;
@@ -70,6 +71,10 @@ public class FilmService {
         }
 
         Film currentFilm = films.get(id);
+
+        if (currentFilm == null) {
+            throw new NotFoundException("Film not found. Film id: " + id);
+        }
 
         if (film.getName() != null) {
             currentFilm.setName(film.getName());
