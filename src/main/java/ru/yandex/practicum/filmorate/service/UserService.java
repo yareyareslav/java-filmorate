@@ -26,10 +26,10 @@ public class UserService {
 
     private void checkLogin(User user) {
         if (user.getLogin().isBlank()) {
-            throw new ConditionsNotMetException("Name must not be blank");
+            throw new ConditionsNotMetException("Login must not be blank");
         }
         if (user.getLogin().contains(" ")) {
-            throw new ConditionsNotMetException("Name must not contain whitespaces");
+            throw new ConditionsNotMetException("Login must not contain whitespaces");
         }
     }
 
