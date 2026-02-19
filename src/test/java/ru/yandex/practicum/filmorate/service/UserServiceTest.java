@@ -74,31 +74,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void create_invalidEmail_throwConditionsNotMetException() {
-        User userMissingA = User.builder()
-                .name("Test")
-                .email("invalid-email.com")
-                .login("Test")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build();
-        User userEmailNull = User.builder()
-                .name("Test")
-                .login("Test")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build();
-
-        assertThrows(ConditionsNotMetException.class, () -> userService.create(userMissingA));
-        assertThrows(ConditionsNotMetException.class, () -> userService.create(userEmailNull));
-    }
-
-    @Test
     public void create_invalidLogin_throwConditionsNotMetException() {
-        User userLoginNull = User.builder()
-                .name("Test")
-                .email("test@mail.com")
-                .login("")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build();
         User userLoginWhitespace = User.builder()
                 .name("Test")
                 .email("test@mail.com")
@@ -106,20 +82,7 @@ public class UserServiceTest {
                 .birthday(LocalDate.of(2012, 12, 12))
                 .build();
 
-        assertThrows(ConditionsNotMetException.class, () -> userService.create(userLoginNull));
         assertThrows(ConditionsNotMetException.class, () -> userService.create(userLoginWhitespace));
-    }
-
-    @Test
-    public void create_invalidBirthday_throwConditionsNotMetException() {
-        User userBirthdayInFuture = User.builder()
-                .name("Test")
-                .email("test@mail.com")
-                .login("Test")
-                .birthday(LocalDate.of(10000, 12, 12))
-                .build();
-
-        assertThrows(ConditionsNotMetException.class, () -> userService.create(userBirthdayInFuture));
     }
 
     @Test
@@ -155,18 +118,6 @@ public class UserServiceTest {
     }
 
     @Test
-    public void update_idNull_throwConditionsNotMetException() {
-        User user = User.builder()
-                .name("Test")
-                .email("test@mail.com")
-                .login("Test")
-                .birthday(LocalDate.of(2000, 12, 12))
-                .build();
-
-        assertThrows(ConditionsNotMetException.class, () -> userService.update(user));
-    }
-
-    @Test
     public void update_idDoesNotExist_throwNotFoundException() {
         User user = User.builder()
                 .id(999L)
@@ -189,52 +140,11 @@ public class UserServiceTest {
                 .build();
         userService.create(user);
 
-        User userLoginBlank = User.builder()
-                .id(1L)
-                .login("")
-                .build();
         User userLoginWhitespace = User.builder()
                 .id(1L)
                 .login("Login with whitespace")
                 .build();
 
-        assertThrows(ConditionsNotMetException.class, () -> userService.update(userLoginBlank));
         assertThrows(ConditionsNotMetException.class, () -> userService.update(userLoginWhitespace));
-    }
-
-    @Test
-    public void update_invalidEmail_throwConditionsNotMetException() {
-        User user = User.builder()
-                .name("Test")
-                .email("test@mail.com")
-                .login("Test")
-                .birthday(LocalDate.of(2000, 12, 12))
-                .build();
-        userService.create(user);
-
-        User userEmailMissingA = User.builder()
-                .id(1L)
-                .email("invalid-mail.ru")
-                .build();
-
-        assertThrows(ConditionsNotMetException.class, () -> userService.update(userEmailMissingA));
-    }
-
-    @Test
-    public void update_invalidBirthday_throwConditionsNotMetException() {
-        User user = User.builder()
-                .name("Test")
-                .email("test@mail.com")
-                .login("Test")
-                .birthday(LocalDate.of(2000, 12, 12))
-                .build();
-        userService.create(user);
-
-        User userBirthdayInFuture = User.builder()
-                .id(1L)
-                .birthday(LocalDate.of(10000, 12, 12))
-                .build();
-
-        assertThrows(ConditionsNotMetException.class, () -> userService.update(userBirthdayInFuture));
     }
 }

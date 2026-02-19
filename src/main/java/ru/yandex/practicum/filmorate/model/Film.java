@@ -22,19 +22,17 @@ public class Film {
     @NotNull(groups = UpdateFilmInfo.class)
     private Long id;
 
-    @NotNull(groups = CreateFilmInfo.class)
     @NotBlank(groups = CreateFilmInfo.class)
     private String name;
 
     @Length(max = 200, groups = { CreateFilmInfo.class, UpdateFilmInfo.class })
-    @NotNull(groups = CreateFilmInfo.class)
     @NotBlank(groups = CreateFilmInfo.class)
     private String description;
 
     @NotNull(groups = CreateFilmInfo.class)
     private LocalDate releaseDate;
 
-    @Min(value = 0, groups = { CreateFilmInfo.class, UpdateFilmInfo.class })
+    @Min(value = 1, groups = { CreateFilmInfo.class, UpdateFilmInfo.class })
     @NotNull(groups = CreateFilmInfo.class)
     private Long duration;
 }

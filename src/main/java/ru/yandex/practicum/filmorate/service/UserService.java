@@ -15,27 +15,9 @@ import java.util.HashMap;
 public class UserService {
     private final HashMap<Long, User> users = new HashMap<>();
 
-    private void checkEmail(User user) {
-        if (user.getEmail() == null) {
-            throw new ConditionsNotMetException("Email must not be null");
-        }
-        if (!user.getEmail().contains("@")) {
-            throw new ConditionsNotMetException("Email must contain @ symbol");
-        }
-    }
-
     private void checkLogin(User user) {
-        if (user.getLogin().isBlank()) {
-            throw new ConditionsNotMetException("Login must not be blank");
-        }
         if (user.getLogin().contains(" ")) {
             throw new ConditionsNotMetException("Login must not contain whitespaces");
-        }
-    }
-
-    private void checkBirthday(User user) {
-        if (user.getBirthday().isAfter(LocalDate.now())) {
-            throw new ConditionsNotMetException("Birthday must not be in the future");
         }
     }
 
@@ -47,9 +29,7 @@ public class UserService {
     public User create(User user) {
         log.info("Create user initiated");
 
-        checkEmail(user);
         checkLogin(user);
-        checkBirthday(user);
 
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
@@ -66,30 +46,29 @@ public class UserService {
         Long id = user.getId();
         log.info("Update user initiated. User id: {}", id);
 
-        if (id == null) {
-            throw new ConditionsNotMetException("Id must not be null");
-        }
-
         User currentUser = users.get(id);
 
         if (currentUser == null) {
             throw new NotFoundException("User not found. User id: " + id);
         }
 
-        if (user.getLogin() != null) {
+        String login = user.getLogin();
+        String email = user.getEmail();
+        String name = user.getName();
+        LocalDate birthday = user.getBirthday();
+
+        if (login != null && !login.isBlank()) {
             checkLogin(user);
-            currentUser.setLogin(user.getLogin());
+            currentUser.setLogin(login);
         }
-        if (user.getEmail() != null) {
-            checkEmail(user);
-            currentUser.setEmail(user.getEmail());
+        if (email != null && !email.isBlank()) {
+            currentUser.setEmail(email);
         }
-        if (user.getName() != null) {
-            currentUser.setName(user.getName());
+        if (name != null && !name.isBlank()) {
+            currentUser.setName(name);
         }
-        if (user.getBirthday() != null) {
-            checkBirthday(user);
-            currentUser.setBirthday(user.getBirthday());
+        if (birthday != null) {
+            currentUser.setBirthday(birthday);
         }
 
         users.put(id, currentUser);

@@ -23,12 +23,12 @@ public class User {
     @NotNull(groups = CreateUserInfo.class)
     private String email;
 
-    @NotNull(groups = CreateUserInfo.class)
     @NotBlank(groups = CreateUserInfo.class)
     private String login;
 
     private String name;
 
+    @NotNull(groups = CreateUserInfo.class)
     @Past(groups = { CreateUserInfo.class, UpdateUserInfo.class })
     private LocalDate birthday;
 }

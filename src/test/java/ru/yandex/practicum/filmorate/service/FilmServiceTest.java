@@ -57,36 +57,6 @@ public class FilmServiceTest {
     }
 
     @Test
-    public void create_invalidName_throwConditionsNotMetException() {
-        Film filmNameNull = Film.builder()
-                .description("Test test")
-                .duration(60L)
-                .releaseDate(LocalDate.of(2000, 12, 12))
-                .build();
-        Film filmNameBlank = Film.builder()
-                .name("")
-                .description("Test test")
-                .duration(60L)
-                .releaseDate(LocalDate.of(2000, 12, 12))
-                .build();
-
-        assertThrows(ConditionsNotMetException.class, () -> filmService.create(filmNameNull));
-        assertThrows(ConditionsNotMetException.class, () -> filmService.create(filmNameBlank));
-    }
-
-    @Test
-    public void create_invalidDescription_throwConditionsNotMetException() {
-        Film filmDescriptionMoreThan200Char = Film.builder()
-                .name("Test")
-                .description("s".repeat(201))
-                .duration(60L)
-                .releaseDate(LocalDate.of(2000, 12, 12))
-                .build();
-
-        assertThrows(ConditionsNotMetException.class, () -> filmService.create(filmDescriptionMoreThan200Char));
-    }
-
-    @Test
     public void create_invalidReleaseDate_throwConditionsNotMetException() {
         Film filmEarlierThan1985 = Film.builder()
                 .name("Test")
@@ -96,18 +66,6 @@ public class FilmServiceTest {
                 .build();
 
         assertThrows(ConditionsNotMetException.class, () -> filmService.create(filmEarlierThan1985));
-    }
-
-    @Test
-    public void create_invalidDuration_throwConditionsNotMetException() {
-        Film filmNegativeDuration = Film.builder()
-                .name("Test")
-                .description("Test test")
-                .duration(-60L)
-                .releaseDate(LocalDate.of(2000, 12, 12))
-                .build();
-
-        assertThrows(ConditionsNotMetException.class, () -> filmService.create(filmNegativeDuration));
     }
 
     @Test
@@ -143,18 +101,6 @@ public class FilmServiceTest {
     }
 
     @Test
-    public void update_idNull_throwConditionsNotMetException() {
-        Film film = Film.builder()
-                .name("Test")
-                .description("Test test")
-                .duration(60L)
-                .releaseDate(LocalDate.of(2012, 12, 12))
-                .build();
-
-        assertThrows(ConditionsNotMetException.class, () -> filmService.update(film));
-    }
-
-    @Test
     public void update_idDoesNotExist_throwNotFoundException() {
         Film film = Film.builder()
                 .id(999L)
@@ -165,44 +111,6 @@ public class FilmServiceTest {
                 .build();
 
         assertThrows(NotFoundException.class, () -> filmService.update(film));
-    }
-
-    @Test
-    public void update_invalidDescription_throwConditionsNotMetException() {
-        Film film = Film.builder()
-                .name("Test")
-                .description("Test test")
-                .duration(60L)
-                .releaseDate(LocalDate.of(2012, 12, 12))
-                .build();
-
-        filmService.create(film);
-
-        Film filmDescriptionMoreThan200Char = Film.builder()
-                .id(1L)
-                .description("s".repeat(201))
-                .build();
-
-        assertThrows(ConditionsNotMetException.class, () -> filmService.update(filmDescriptionMoreThan200Char));
-    }
-
-    @Test
-    public void update_invalidDuration_throwConditionsNotMetException() {
-        Film film = Film.builder()
-                .name("Test")
-                .description("Test test")
-                .duration(60L)
-                .releaseDate(LocalDate.of(2012, 12, 12))
-                .build();
-
-        filmService.create(film);
-
-        Film filmDurationNegative = Film.builder()
-                .id(1L)
-                .duration(-60L)
-                .build();
-
-        assertThrows(ConditionsNotMetException.class, () -> filmService.update(filmDurationNegative));
     }
 
     @Test
