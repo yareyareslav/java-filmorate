@@ -48,7 +48,7 @@ public class FilmService {
         return film.getLikedUsersIds().remove(userId);
     }
 
-    public Collection<Film> getTopFilmsByLikes(Long count) {
+    public Collection<Film> getTopByLikes(int count) {
         return filmStorage.findAll()
                 .stream()
                 .sorted(Comparator.comparingInt(f -> f.getLikedUsersIds().size()))

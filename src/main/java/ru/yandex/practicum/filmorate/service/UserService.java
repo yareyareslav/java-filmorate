@@ -48,6 +48,18 @@ public class UserService {
                 && friend.getFriendsIds().remove(id);
     }
 
+    public Collection<User> getFriends(Long id) {
+        User user = userStorage.findOne(id);
+        if (user == null) {
+            throw new NotFoundException("User not found. User id: " + id);
+        }
+
+        return user.getFriendsIds()
+                .stream()
+                .map(userStorage::findOne)
+                .toList();
+    }
+
     public Collection<User> getCommonFriends(Long id, Long friendId) {
         User user = userStorage.findOne(id);
         if (user == null) {

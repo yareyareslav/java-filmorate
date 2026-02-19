@@ -50,9 +50,15 @@ public class UserController {
         return userService.removeFriend(id, friendId);
     }
 
-    @GetMapping("/{id}/friends/{friendId}")
+    @GetMapping("/{id}/friends")
     @ResponseStatus(HttpStatus.OK)
-    public Collection<User> getCommonFriends(@PathVariable Long id, @PathVariable Long friendId) {
+    public Collection<User> getFriends(@PathVariable Long id) {
+        return userService.getFriends(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{friendId}")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<User> getFriends(@PathVariable Long id, @PathVariable Long friendId) {
         return userService.getCommonFriends(id, friendId);
     }
 
