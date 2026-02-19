@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.service;
+package ru.yandex.practicum.filmorate.storage;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,12 +10,12 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class UserServiceTest {
-    private UserService userService;
+public class InMemoryUserStorageTest {
+    private InMemoryUserStorage inMemoryUserStorage;
 
     @BeforeEach
     public void init() {
-        userService = new UserService();
+        inMemoryUserStorage = new InMemoryUserStorage();
     }
 
     @Test
@@ -27,13 +27,13 @@ public class UserServiceTest {
                 .birthday(LocalDate.of(2012, 12, 12))
                 .build();
 
-        assertEquals(0, userService.findAll().size());
+        assertEquals(0, inMemoryUserStorage.findAll().size());
 
-        userService.create(user);
-        userService.create(user);
-        userService.create(user);
+        inMemoryUserStorage.create(user);
+        inMemoryUserStorage.create(user);
+        inMemoryUserStorage.create(user);
 
-        assertEquals(3, userService.findAll().size());
+        assertEquals(3, inMemoryUserStorage.findAll().size());
     }
 
     @Test
@@ -45,9 +45,9 @@ public class UserServiceTest {
                 .birthday(LocalDate.of(2012, 12, 12))
                 .build();
 
-        User createdUser = userService.create(user);
+        User createdUser = inMemoryUserStorage.create(user);
 
-        assertTrue(userService.findAll().contains(createdUser));
+        assertTrue(inMemoryUserStorage.findAll().contains(createdUser));
         assertEquals(1, createdUser.getId());
         assertEquals(user.getName(), createdUser.getName());
         assertEquals(user.getEmail(), createdUser.getEmail());
@@ -63,9 +63,9 @@ public class UserServiceTest {
                 .birthday(LocalDate.of(2012, 12, 12))
                 .build();
 
-        User createdUser = userService.create(user);
+        User createdUser = inMemoryUserStorage.create(user);
 
-        assertTrue(userService.findAll().contains(createdUser));
+        assertTrue(inMemoryUserStorage.findAll().contains(createdUser));
         assertEquals(1, createdUser.getId());
         assertEquals(user.getLogin(), createdUser.getName(), "Name must be equal to login");
         assertEquals(user.getEmail(), createdUser.getEmail());
@@ -82,7 +82,7 @@ public class UserServiceTest {
                 .birthday(LocalDate.of(2012, 12, 12))
                 .build();
 
-        assertThrows(ConditionsNotMetException.class, () -> userService.create(userLoginWhitespace));
+        assertThrows(ConditionsNotMetException.class, () -> inMemoryUserStorage.create(userLoginWhitespace));
     }
 
     @Test
@@ -94,7 +94,7 @@ public class UserServiceTest {
                 .birthday(LocalDate.of(2012, 12, 12))
                 .build();
 
-        User createdUser = userService.create(user);
+        User createdUser = inMemoryUserStorage.create(user);
 
         User userToUpdate = User.builder()
                 .id(1L)
@@ -104,11 +104,11 @@ public class UserServiceTest {
                 .birthday(LocalDate.of(2000, 12, 12))
                 .build();
 
-        User updatedUser = userService.update(userToUpdate);
+        User updatedUser = inMemoryUserStorage.update(userToUpdate);
 
         assertSame(createdUser, updatedUser, "Users have the same link");
-        assertTrue(userService.findAll().contains(updatedUser));
-        assertEquals(1, userService.findAll().size(), "User list must contain only one object");
+        assertTrue(inMemoryUserStorage.findAll().contains(updatedUser));
+        assertEquals(1, inMemoryUserStorage.findAll().size(), "User list must contain only one object");
         assertEquals(createdUser.getId(), updatedUser.getId());
         assertEquals(userToUpdate.getId(), updatedUser.getId());
         assertEquals(userToUpdate.getName(), updatedUser.getName());
@@ -127,7 +127,7 @@ public class UserServiceTest {
                 .birthday(LocalDate.of(2000, 12, 12))
                 .build();
 
-        assertThrows(NotFoundException.class, () -> userService.update(user));
+        assertThrows(NotFoundException.class, () -> inMemoryUserStorage.update(user));
     }
 
     @Test
@@ -138,13 +138,13 @@ public class UserServiceTest {
                 .login("Test")
                 .birthday(LocalDate.of(2000, 12, 12))
                 .build();
-        userService.create(user);
+        inMemoryUserStorage.create(user);
 
         User userLoginWhitespace = User.builder()
                 .id(1L)
                 .login("Login with whitespace")
                 .build();
 
-        assertThrows(ConditionsNotMetException.class, () -> userService.update(userLoginWhitespace));
+        assertThrows(ConditionsNotMetException.class, () -> inMemoryUserStorage.update(userLoginWhitespace));
     }
 }

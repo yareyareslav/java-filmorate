@@ -13,7 +13,7 @@ import ru.yandex.practicum.filmorate.adapters.LocalDateAdapter;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import java.time.LocalDate;
 
@@ -32,7 +32,7 @@ public class FilmControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private FilmService filmService;
+    private InMemoryFilmStorage inMemoryFilmStorage;
 
     @Test
     void findAll_returnOk() throws Exception {
@@ -52,7 +52,7 @@ public class FilmControllerTest {
 
         String filmJson = gson.toJson(film, Film.class);
 
-        Mockito.when(filmService.create(Mockito.any(Film.class)))
+        Mockito.when(inMemoryFilmStorage.create(Mockito.any(Film.class)))
                 .thenReturn(Film.builder()
                         .id(1L)
                         .name("Test")
@@ -83,7 +83,7 @@ public class FilmControllerTest {
 
         String filmJson = gson.toJson(film, Film.class);
 
-        Mockito.when(filmService.create(Mockito.any(Film.class)))
+        Mockito.when(inMemoryFilmStorage.create(Mockito.any(Film.class)))
                 .thenThrow(ConditionsNotMetException.class);
 
         mockMvc.perform(post("/films")
@@ -104,7 +104,7 @@ public class FilmControllerTest {
 
         String filmJson = gson.toJson(film, Film.class);
 
-        Mockito.when(filmService.update(Mockito.any(Film.class)))
+        Mockito.when(inMemoryFilmStorage.update(Mockito.any(Film.class)))
                 .thenReturn(Film.builder()
                         .id(1L)
                         .name("Test")
@@ -136,7 +136,7 @@ public class FilmControllerTest {
 
         String filmJson = gson.toJson(film, Film.class);
 
-        Mockito.when(filmService.update(Mockito.any(Film.class)))
+        Mockito.when(inMemoryFilmStorage.update(Mockito.any(Film.class)))
                 .thenThrow(NotFoundException.class);
 
         mockMvc.perform(put("/films")
@@ -157,7 +157,7 @@ public class FilmControllerTest {
 
         String filmJson = gson.toJson(film, Film.class);
 
-        Mockito.when(filmService.update(Mockito.any(Film.class)))
+        Mockito.when(inMemoryFilmStorage.update(Mockito.any(Film.class)))
                 .thenThrow(NotFoundException.class);
 
         mockMvc.perform(put("/films")

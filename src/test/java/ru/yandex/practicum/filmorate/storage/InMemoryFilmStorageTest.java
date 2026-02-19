@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.service;
+package ru.yandex.practicum.filmorate.storage;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,12 +11,12 @@ import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class FilmServiceTest {
-    private FilmService filmService;
+public class InMemoryFilmStorageTest {
+    private InMemoryFilmStorage inMemoryFilmStorage;
 
     @BeforeEach
     public void init() {
-        filmService = new FilmService();
+        inMemoryFilmStorage = new InMemoryFilmStorage();
     }
 
     @Test
@@ -28,13 +28,13 @@ public class FilmServiceTest {
                 .releaseDate(LocalDate.of(2000, 12, 12))
                 .build();
 
-        assertEquals(0, filmService.findAll().size());
+        assertEquals(0, inMemoryFilmStorage.findAll().size());
 
-        filmService.create(film);
-        filmService.create(film);
-        filmService.create(film);
+        inMemoryFilmStorage.create(film);
+        inMemoryFilmStorage.create(film);
+        inMemoryFilmStorage.create(film);
 
-        assertEquals(3, filmService.findAll().size());
+        assertEquals(3, inMemoryFilmStorage.findAll().size());
     }
 
     @Test
@@ -46,9 +46,9 @@ public class FilmServiceTest {
                 .releaseDate(LocalDate.of(2000, 12, 12))
                 .build();
 
-        Film createdFilm = filmService.create(film);
+        Film createdFilm = inMemoryFilmStorage.create(film);
 
-        assertTrue(filmService.findAll().contains(createdFilm));
+        assertTrue(inMemoryFilmStorage.findAll().contains(createdFilm));
         assertEquals(1, createdFilm.getId());
         assertEquals(film.getName(), createdFilm.getName());
         assertEquals(film.getDescription(), createdFilm.getDescription());
@@ -65,7 +65,7 @@ public class FilmServiceTest {
                 .releaseDate(LocalDate.of(1800, 12, 12))
                 .build();
 
-        assertThrows(ConditionsNotMetException.class, () -> filmService.create(filmEarlierThan1985));
+        assertThrows(ConditionsNotMetException.class, () -> inMemoryFilmStorage.create(filmEarlierThan1985));
     }
 
     @Test
@@ -77,7 +77,7 @@ public class FilmServiceTest {
                 .releaseDate(LocalDate.of(2012, 12, 12))
                 .build();
 
-        Film createdUser = filmService.create(film);
+        Film createdUser = inMemoryFilmStorage.create(film);
 
         Film filmToUpdate = Film.builder()
                 .id(1L)
@@ -87,11 +87,11 @@ public class FilmServiceTest {
                 .releaseDate(LocalDate.of(2000, 12, 12))
                 .build();
 
-        Film updatedFilm = filmService.update(filmToUpdate);
+        Film updatedFilm = inMemoryFilmStorage.update(filmToUpdate);
 
         assertSame(createdUser, updatedFilm, "Films have the same link");
-        assertTrue(filmService.findAll().contains(updatedFilm));
-        assertEquals(1, filmService.findAll().size(), "Film list must contain only one object");
+        assertTrue(inMemoryFilmStorage.findAll().contains(updatedFilm));
+        assertEquals(1, inMemoryFilmStorage.findAll().size(), "Film list must contain only one object");
         assertEquals(createdUser.getId(), updatedFilm.getId());
         assertEquals(filmToUpdate.getId(), updatedFilm.getId());
         assertEquals(filmToUpdate.getName(), updatedFilm.getName());
@@ -110,7 +110,7 @@ public class FilmServiceTest {
                 .releaseDate(LocalDate.of(2012, 12, 12))
                 .build();
 
-        assertThrows(NotFoundException.class, () -> filmService.update(film));
+        assertThrows(NotFoundException.class, () -> inMemoryFilmStorage.update(film));
     }
 
     @Test
@@ -122,14 +122,14 @@ public class FilmServiceTest {
                 .releaseDate(LocalDate.of(2012, 12, 12))
                 .build();
 
-        filmService.create(film);
+        inMemoryFilmStorage.create(film);
 
         Film filmReleaseDateBefore1895 = Film.builder()
                 .id(1L)
                 .releaseDate(LocalDate.of(1800, 12, 12))
                 .build();
 
-        assertThrows(ConditionsNotMetException.class, () -> filmService.update(filmReleaseDateBefore1895));
+        assertThrows(ConditionsNotMetException.class, () -> inMemoryFilmStorage.update(filmReleaseDateBefore1895));
     }
 
 }
