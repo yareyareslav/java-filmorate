@@ -33,5 +33,5 @@ public class User {
     @Past(groups = { CreateUserInfo.class, UpdateUserInfo.class })
     private LocalDate birthday;
 
-    private Set<User> friends;
+    private Set<Long> friendsIds;
 }

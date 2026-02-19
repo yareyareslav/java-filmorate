@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -28,10 +29,8 @@ public class UserService {
             throw new NotFoundException("Friend not found. Friend id: " + friendId);
         }
 
-        user.getFriends().add(friend);
-        friend.getFriends().add(user);
-
-        return true;
+        return user.getFriendsIds().add(friendId)
+                && friend.getFriendsIds().add(id);
     }
 
     public boolean removeFriend(Long id, Long friendId) {
@@ -45,10 +44,8 @@ public class UserService {
             throw new NotFoundException("Friend not found. Friend id: " + friendId);
         }
 
-        user.getFriends().remove(friend);
-        friend.getFriends().remove(user);
-
-        return true;
+        return user.getFriendsIds().remove(friendId)
+                && friend.getFriendsIds().remove(id);
     }
 
     public Collection<User> getCommonFriends(Long id, Long friendId) {
@@ -62,10 +59,13 @@ public class UserService {
             throw new NotFoundException("Friend not found. Friend id: " + friendId);
         }
 
-        Set<User> commonFriends = new HashSet<>(user.getFriends());
-        commonFriends.retainAll(friend.getFriends());
+        Set<Long> commonFriendsIds = new HashSet<>(user.getFriendsIds());
+        commonFriendsIds.retainAll(friend.getFriendsIds());
 
-        return commonFriends;
+        return commonFriendsIds
+                .stream()
+                .map(userStorage::findOne)
+                .collect(Collectors.toSet());
     }
 
 }

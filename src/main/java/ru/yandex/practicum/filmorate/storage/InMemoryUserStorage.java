@@ -31,9 +31,10 @@ public class InMemoryUserStorage implements UserStorage {
         User user = users.get(id);
 
         if (user == null) {
-            throw new NotFoundException("User not found. User id: " + id);
+            throw new NotFoundException("User is not found. User id: " + id);
         }
 
+        log.info("User was found. User id: {}", id);
         return user;
     }
 

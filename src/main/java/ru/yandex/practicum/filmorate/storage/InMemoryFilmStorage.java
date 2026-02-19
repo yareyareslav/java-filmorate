@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -25,6 +26,18 @@ public class InMemoryFilmStorage implements FilmStorage {
     public Collection<Film> findAll() {
         log.info("Find all films");
         return films.values();
+    }
+
+    public Film findOne(Long id) {
+        log.info("Find one film initiated");
+        Film film = films.get(id);
+
+        if (film == null) {
+            throw new NotFoundException("Film is not found. Film id: " + id);
+        }
+
+        log.info("Film was found. Film id: {}", id);
+        return film;
     }
 
     public Film create(Film film) {
