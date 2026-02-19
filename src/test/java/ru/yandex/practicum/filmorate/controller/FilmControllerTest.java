@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.adapters.LocalDateAdapter;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import java.time.LocalDate;
@@ -33,6 +34,9 @@ public class FilmControllerTest {
 
     @MockBean
     private InMemoryFilmStorage inMemoryFilmStorage;
+
+    @MockBean
+    private FilmService filmService;
 
     @Test
     void findAll_returnOk() throws Exception {

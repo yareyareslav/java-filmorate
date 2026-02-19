@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.adapters.LocalDateAdapter;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import java.time.LocalDate;
@@ -31,6 +32,8 @@ public class UserControllerTest {
 
     @MockBean
     private InMemoryUserStorage inMemoryUserStorage;
+    @MockBean
+    private UserService userService;
 
     @Test
     void findAll_returnOk() throws Exception {
