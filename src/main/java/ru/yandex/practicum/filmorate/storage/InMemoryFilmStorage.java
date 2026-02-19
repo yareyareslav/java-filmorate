@@ -8,8 +8,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -46,6 +45,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         checkReleaseDate(film);
 
         film.setId(getNextId());
+        film.setLikedUsersIds(new HashSet<>());
         films.put(film.getId(), film);
 
         log.info("Film created");

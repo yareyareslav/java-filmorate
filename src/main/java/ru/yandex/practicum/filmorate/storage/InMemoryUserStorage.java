@@ -8,7 +8,9 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 
 @Slf4j
 @Component
@@ -48,6 +50,7 @@ public class InMemoryUserStorage implements UserStorage {
         }
 
         user.setId(getNextId());
+        user.setFriendsIds(new HashSet<>());
         users.put(user.getId(), user);
 
         log.info("User created");

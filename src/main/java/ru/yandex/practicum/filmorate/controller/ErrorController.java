@@ -55,7 +55,7 @@ public class ErrorController {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleRuntimeErrors(RuntimeException e) {
-        log.error(e.getMessage());
+        log.error(e.toString());
         return new ErrorResponse(e.getMessage());
     }
 }
