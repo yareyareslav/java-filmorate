@@ -33,7 +33,6 @@ public class UserService {
         }
 
         log.info("Add friend ended. User id: {}, Friend id: {}", id, friendId);
-        
         return user.getFriendsIds().add(friendId)
                 && friend.getFriendsIds().add(id);
     }
