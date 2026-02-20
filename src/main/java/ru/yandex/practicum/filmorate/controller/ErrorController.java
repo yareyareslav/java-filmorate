@@ -28,6 +28,7 @@ public class ErrorController {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
+        log.error(e.getMessage());
         Map<String, String> errors = new HashMap<>();
 
         e.getBindingResult().getAllErrors().forEach((error) -> {
@@ -49,6 +50,7 @@ public class ErrorController {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleInvalidJson(HttpMessageNotReadableException e) {
+        log.error(e.getMessage());
         return new ErrorResponse("Invalid JSON format. " + e.getMessage());
     }
 
