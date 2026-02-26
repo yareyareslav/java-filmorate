@@ -22,6 +22,18 @@ public class FilmService {
         this.userStorage = userStorage;
     }
 
+    public Collection<Film> findAll() {
+        return filmStorage.findAll();
+    }
+
+    public Film create(final Film film) {
+        return filmStorage.create(film);
+    }
+
+    public Film update(final Film film) {
+        return filmStorage.update(film);
+    }
+
     public boolean addLike(Long id, Long userId) {
         log.info("Add like initiated. Film id: {}, User id: {}", id, userId);
 

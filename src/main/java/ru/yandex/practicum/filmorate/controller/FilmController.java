@@ -12,30 +12,28 @@ import java.util.Collection;
 @RestController
 @RequestMapping("/films")
 public class FilmController {
-    private final InMemoryFilmStorage inMemoryFilmStorage;
     private final FilmService filmService;
 
-    public FilmController(final InMemoryFilmStorage inMemoryFilmStorage,
-                          final FilmService filmService) {
-        this.inMemoryFilmStorage = inMemoryFilmStorage;
+    public FilmController(final FilmService filmService) {
         this.filmService = filmService;
     }
 
     @GetMapping
+    @ResponseStatus(HttpStatus.OK)
     public Collection<Film> findAll() {
-        return inMemoryFilmStorage.findAll();
+        return filmService.findAll();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Film create(@Validated(Film.CreateFilmInfo.class) @RequestBody Film film) {
-        return inMemoryFilmStorage.create(film);
+        return filmService.create(film);
     }
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
     public Film update(@Validated(Film.UpdateFilmInfo.class) @RequestBody Film film) {
-        return inMemoryFilmStorage.update(film);
+        return filmService.update(film);
     }
 
     @PutMapping("/{id}/like/{userId}")
