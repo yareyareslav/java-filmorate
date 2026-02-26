@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,11 +23,9 @@ public class UserService {
     }
 
     private User checkUserExists(final long id) {
-        User user = userStorage.findOne(id);
-        if (user == null) {
-            throw new NotFoundException("User not found. User id: " + id);
-        }
-        return user;
+        return userStorage
+                .findOne(id)
+                .orElseThrow(() -> new NotFoundException("User not found. User id: " + id));
     }
 
     private void checkUsersAreDifferent(final long user1Id, final long user2Id) {
@@ -82,6 +81,7 @@ public class UserService {
         return user.getFriendsIds()
                 .stream()
                 .map(userStorage::findOne)
+                .flatMap(Optional::stream)
                 .toList();
     }
 
@@ -100,6 +100,7 @@ public class UserService {
         return commonFriendsIds
                 .stream()
                 .map(userStorage::findOne)
+                .flatMap(Optional::stream)
                 .collect(Collectors.toSet());
     }
 

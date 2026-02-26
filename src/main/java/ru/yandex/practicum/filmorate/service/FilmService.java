@@ -19,19 +19,15 @@ public class FilmService {
     private final UserStorage userStorage;
 
     private Film checkFilmExists(final long id) {
-        Film film = filmStorage.findOne(id);
-        if (filmStorage.findOne(id) == null) {
-            throw new NotFoundException("Film is not found. Film id: " + id);
-        }
-        return film;
+        return filmStorage
+                .findOne(id)
+                .orElseThrow(() -> new NotFoundException("Film is not found. Film id: " + id));
     }
 
     private User checkUserExists(final long id) {
-        User user = userStorage.findOne(id);
-        if (user == null) {
-            throw new NotFoundException("User is not found. User id: " + id);
-        }
-        return user;
+        return userStorage
+                .findOne(id)
+                .orElseThrow(() -> new NotFoundException("User is not found. User id: " + id));
     }
 
     public FilmService(FilmStorage filmStorage, UserStorage userStorage) {

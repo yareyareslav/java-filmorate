@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -27,16 +28,16 @@ public class InMemoryUserStorage implements UserStorage {
         return users.values();
     }
 
-    public User findOne(Long id) {
+    public Optional<User> findOne(Long id) {
         log.info("Find one user initiated");
         User user = users.get(id);
 
         if (user == null) {
-            throw new NotFoundException("User is not found. User id: " + id);
+            return Optional.empty();
         }
 
         log.info("User was found. User id: {}", id);
-        return user;
+        return Optional.of(user);
     }
 
     public User create(User user) {

@@ -26,16 +26,16 @@ public class InMemoryFilmStorage implements FilmStorage {
         return films.values();
     }
 
-    public Film findOne(Long id) {
+    public Optional<Film> findOne(Long id) {
         log.info("Find one film initiated");
         Film film = films.get(id);
 
         if (film == null) {
-            throw new NotFoundException("Film is not found. Film id: " + id);
+            return Optional.empty();
         }
 
         log.info("Film was found. Film id: {}", id);
-        return film;
+        return Optional.of(film);
     }
 
     public Film create(Film film) {
