@@ -17,6 +17,22 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
 
+    private Film checkFilmExists(final long id) {
+        Film film = filmStorage.findOne(id);
+        if (filmStorage.findOne(id) == null) {
+            throw new NotFoundException("Film is not found. Film id: " + id);
+        }
+        return film;
+    }
+
+    private User checkUserExists(final long id) {
+        User user = userStorage.findOne(id);
+        if (user == null) {
+            throw new NotFoundException("User is not found. User id: " + id);
+        }
+        return user;
+    }
+
     public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
@@ -37,15 +53,8 @@ public class FilmService {
     public boolean addLike(Long id, Long userId) {
         log.info("Add like initiated. Film id: {}, User id: {}", id, userId);
 
-        Film film = filmStorage.findOne(id);
-        if (filmStorage.findOne(id) == null) {
-            throw new NotFoundException("Film is not found. Film id: " + id);
-        }
-
-        User user = userStorage.findOne(userId);
-        if (user == null) {
-            throw new NotFoundException("User is not found. User id: " + userId);
-        }
+        Film film = checkFilmExists(id);
+        checkUserExists(userId);
 
         log.info("Add like ended. Film id: {}, User id: {}", id, userId);
         return film.getLikedUsersIds().add(userId);
@@ -54,15 +63,8 @@ public class FilmService {
     public boolean removeLike(Long id, Long userId) {
         log.info("Remove like initiated. Film id: {}, User id: {}", id, userId);
 
-        Film film = filmStorage.findOne(id);
-        if (filmStorage.findOne(id) == null) {
-            throw new NotFoundException("Film is not found. Film id: " + id);
-        }
-
-        User user = userStorage.findOne(userId);
-        if (user == null) {
-            throw new NotFoundException("User is not found. User id: " + userId);
-        }
+        Film film = checkFilmExists(id);
+        checkUserExists(userId);
 
         log.info("Remove like ended. Film id: {}, User id: {}", id, userId);
         return film.getLikedUsersIds().remove(userId);
