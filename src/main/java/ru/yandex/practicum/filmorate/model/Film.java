@@ -8,6 +8,7 @@ import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 /**
  * Film.
@@ -35,4 +36,6 @@ public class Film {
     @Min(value = 1, groups = { CreateFilmInfo.class, UpdateFilmInfo.class })
     @NotNull(groups = CreateFilmInfo.class)
     private Long duration;
+
+    private Set<Long> likedUsersIds;
 }
