@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -12,14 +11,7 @@ import java.util.*;
 @Slf4j
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
-    private final LocalDate dateLimit = LocalDate.of(1895, 12, 28);
     private final HashMap<Long, Film> films = new HashMap<>();
-
-    private void checkReleaseDate(Film film) {
-        if (film.getReleaseDate().isBefore(dateLimit)) {
-            throw new ConditionsNotMetException("Release date must be after 28.12.1895");
-        }
-    }
 
     public Collection<Film> findAll() {
         log.info("Find all films");
@@ -40,8 +32,6 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     public Film create(Film film) {
         log.info("Create film initiated");
-
-        checkReleaseDate(film);
 
         film.setId(getNextId());
         film.setLikedUsersIds(new HashSet<>());
@@ -76,7 +66,6 @@ public class InMemoryFilmStorage implements FilmStorage {
             currentFilm.setDuration(duration);
         }
         if (releaseDate != null) {
-            checkReleaseDate(film);
             currentFilm.setReleaseDate(releaseDate);
         }
 

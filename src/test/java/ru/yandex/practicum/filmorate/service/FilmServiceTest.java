@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
@@ -25,6 +26,37 @@ public class FilmServiceTest {
         userStorage = new InMemoryUserStorage();
         filmStorage = new InMemoryFilmStorage();
         filmService = new FilmService(filmStorage, userStorage);
+    }
+
+    @Test
+    public void create_invalidReleaseDate_throwConditionsNotMetException() {
+        Film filmEarlierThan1985 = Film.builder()
+                .name("Test")
+                .description("Test test")
+                .duration(60L)
+                .releaseDate(LocalDate.of(1800, 12, 12))
+                .build();
+
+        assertThrows(ConditionsNotMetException.class, () -> filmService.create(filmEarlierThan1985));
+    }
+
+    @Test
+    public void update_invalidReleaseDate_throwConditionsNotMetException() {
+        Film film = Film.builder()
+                .name("Test")
+                .description("Test test")
+                .duration(60L)
+                .releaseDate(LocalDate.of(2012, 12, 12))
+                .build();
+
+        filmService.create(film);
+
+        Film filmReleaseDateBefore1895 = Film.builder()
+                .id(1L)
+                .releaseDate(LocalDate.of(1800, 12, 12))
+                .build();
+
+        assertThrows(ConditionsNotMetException.class, () -> filmService.update(filmReleaseDateBefore1895));
     }
 
     @Test

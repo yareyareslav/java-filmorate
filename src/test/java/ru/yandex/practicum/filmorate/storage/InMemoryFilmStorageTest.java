@@ -57,18 +57,6 @@ public class InMemoryFilmStorageTest {
     }
 
     @Test
-    public void create_invalidReleaseDate_throwConditionsNotMetException() {
-        Film filmEarlierThan1985 = Film.builder()
-                .name("Test")
-                .description("Test test")
-                .duration(60L)
-                .releaseDate(LocalDate.of(1800, 12, 12))
-                .build();
-
-        assertThrows(ConditionsNotMetException.class, () -> inMemoryFilmStorage.create(filmEarlierThan1985));
-    }
-
-    @Test
     public void update_validData_returnUpdatedFilm() {
         Film film = Film.builder()
                 .name("Test")
@@ -112,24 +100,4 @@ public class InMemoryFilmStorageTest {
 
         assertThrows(NotFoundException.class, () -> inMemoryFilmStorage.update(film));
     }
-
-    @Test
-    public void update_invalidReleaseDate_throwConditionsNotMetException() {
-        Film film = Film.builder()
-                .name("Test")
-                .description("Test test")
-                .duration(60L)
-                .releaseDate(LocalDate.of(2012, 12, 12))
-                .build();
-
-        inMemoryFilmStorage.create(film);
-
-        Film filmReleaseDateBefore1895 = Film.builder()
-                .id(1L)
-                .releaseDate(LocalDate.of(1800, 12, 12))
-                .build();
-
-        assertThrows(ConditionsNotMetException.class, () -> inMemoryFilmStorage.update(filmReleaseDateBefore1895));
-    }
-
 }

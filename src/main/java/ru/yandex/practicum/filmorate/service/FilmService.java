@@ -9,14 +9,24 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Comparator;
 
 @Slf4j
 @Service
 public class FilmService {
+    private final LocalDate dateLimit = LocalDate.of(1895, 12, 28);
+
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+
+    private void checkReleaseDate(Film film) {
+        LocalDate release = film.getReleaseDate();
+        if (release != null && release.isBefore(dateLimit)) {
+            throw new ConditionsNotMetException("Release date must be after 28.12.1895");
+        }
+    }
 
     private Film checkFilmExists(final long id) {
         return filmStorage
@@ -40,10 +50,12 @@ public class FilmService {
     }
 
     public Film create(final Film film) {
+        checkReleaseDate(film);
         return filmStorage.create(film);
     }
 
     public Film update(final Film film) {
+        checkReleaseDate(film);
         return filmStorage.update(film);
     }
 
