@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
@@ -28,6 +29,12 @@ public class UserService {
         return user;
     }
 
+    private void checkUsersAreDifferent(final long user1Id, final long user2Id) {
+        if (user1Id == user2Id) {
+            throw new ConditionsNotMetException("Ids of users must be different");
+        }
+    }
+
     public Collection<User> findAll() {
         return userStorage.findAll();
     }
@@ -43,6 +50,8 @@ public class UserService {
     public boolean addFriend(Long id, Long friendId) {
         log.info("Add friend initiated. User id: {}, Friend id: {}", id, friendId);
 
+        checkUsersAreDifferent(id, friendId);
+
         User user = checkUserExists(id);
         User friend = checkUserExists(friendId);
 
@@ -53,6 +62,8 @@ public class UserService {
 
     public boolean removeFriend(Long id, Long friendId) {
         log.info("Remove friend initiated. User id: {}, Friend id: {}", id, friendId);
+
+        checkUsersAreDifferent(id, friendId);
 
         User user = checkUserExists(id);
         User friend = checkUserExists(friendId);
@@ -76,6 +87,8 @@ public class UserService {
 
     public Collection<User> getCommonFriends(Long id, Long friendId) {
         log.info("Get common friend initiated. User id: {}, Friend id: {}", id, friendId);
+
+        checkUsersAreDifferent(id, friendId);
 
         User user = checkUserExists(id);
         User friend = checkUserExists(friendId);
