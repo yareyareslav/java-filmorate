@@ -12,7 +12,6 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Optional;
 
 @Slf4j
 @Service
