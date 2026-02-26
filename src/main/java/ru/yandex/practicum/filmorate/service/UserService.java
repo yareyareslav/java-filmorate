@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
@@ -34,16 +35,51 @@ public class UserService {
         }
     }
 
+    private void checkLogin(User user) {
+        if (user.getLogin().contains(" ")) {
+            throw new ConditionsNotMetException("Login must not contain whitespaces");
+        }
+    }
+
     public Collection<User> findAll() {
         return userStorage.findAll();
     }
 
     public User create(final User user) {
+        checkLogin(user);
+
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
+
         return userStorage.create(user);
     }
 
     public User update(final User user) {
-        return userStorage.update(user);
+        User currentUser = checkUserExists(user.getId());
+
+        String login = user.getLogin();
+        String email = user.getEmail();
+        String name = user.getName();
+        LocalDate birthday = user.getBirthday();
+
+        if (login != null && !login.isBlank()) {
+            checkLogin(user);
+            currentUser.setLogin(login);
+        }
+        if (email != null && !email.isBlank()) {
+            currentUser.setEmail(email);
+        }
+        if (name != null && !name.isBlank()) {
+            currentUser.setName(name);
+        }
+        if (birthday != null) {
+            currentUser.setBirthday(birthday);
+        }
+
+        return userStorage
+                .update(user)
+                .orElseThrow(() -> new NotFoundException("User is not found. User id: " + user.getId()));
     }
 
     public boolean addFriend(Long id, Long friendId) {

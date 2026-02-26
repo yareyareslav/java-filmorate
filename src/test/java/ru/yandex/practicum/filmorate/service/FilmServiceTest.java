@@ -19,12 +19,11 @@ import static org.junit.jupiter.api.Assertions.*;
 public class FilmServiceTest {
     private FilmService filmService;
     private UserStorage userStorage;
-    private FilmStorage filmStorage;
 
     @BeforeEach
     public void init() {
         userStorage = new InMemoryUserStorage();
-        filmStorage = new InMemoryFilmStorage();
+        FilmStorage filmStorage = new InMemoryFilmStorage();
         filmService = new FilmService(filmStorage, userStorage);
     }
 
@@ -122,7 +121,7 @@ public class FilmServiceTest {
                 .build();
 
         userStorage.create(user);
-        filmStorage.create(film);
+        filmService.create(film);
 
         boolean result = filmService.addLike(film.getId(), user.getId());
 
@@ -147,7 +146,7 @@ public class FilmServiceTest {
                 .build();
 
         userStorage.create(user);
-        filmStorage.create(film);
+        filmService.create(film);
 
         filmService.addLike(film.getId(), user.getId());
         boolean result = filmService.addLike(film.getId(), user.getId());
@@ -173,7 +172,7 @@ public class FilmServiceTest {
                 .build();
 
         userStorage.create(user);
-        filmStorage.create(film);
+        filmService.create(film);
 
         assertThrows(NotFoundException.class, () -> filmService.addLike(film.getId(), 999L));
         assertThrows(NotFoundException.class, () -> filmService.addLike(999L, user.getId()));
@@ -197,7 +196,7 @@ public class FilmServiceTest {
                 .build();
 
         userStorage.create(user);
-        filmStorage.create(film);
+        filmService.create(film);
         filmService.addLike(film.getId(), user.getId());
 
         assertTrue(film.getLikedUsersIds().contains(user.getId()));
@@ -225,7 +224,7 @@ public class FilmServiceTest {
                 .build();
 
         userStorage.create(user);
-        filmStorage.create(film);
+        filmService.create(film);
 
         assertFalse(film.getLikedUsersIds().contains(user.getId()));
 
@@ -252,7 +251,7 @@ public class FilmServiceTest {
                 .build();
 
         userStorage.create(user);
-        filmStorage.create(film);
+        filmService.create(film);
 
         assertThrows(NotFoundException.class, () -> filmService.removeLike(film.getId(), 999L));
         assertThrows(NotFoundException.class, () -> filmService.removeLike(999L, user.getId()));
@@ -268,9 +267,9 @@ public class FilmServiceTest {
                 .duration(60L)
                 .releaseDate(LocalDate.of(2012, 12, 12))
                 .build();
-        Film film1 = filmStorage.create(testFilm);
-        Film film2 = filmStorage.create(testFilm);
-        Film film3 = filmStorage.create(testFilm);
+        Film film1 = filmService.create(testFilm);
+        Film film2 = filmService.create(testFilm);
+        Film film3 = filmService.create(testFilm);
 
         User testUser = userStorage.create(User.builder()
                 .name("Test 1")

@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
@@ -14,23 +15,115 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class UserServiceTest {
     private UserService userService;
-    private UserStorage userStorage;
 
     @BeforeEach
     public void init() {
-        userStorage = new InMemoryUserStorage();
+        UserStorage userStorage = new InMemoryUserStorage();
         userService = new UserService(userStorage);
     }
 
     @Test
+    public void create_nameIsNull_returnUserWithIdAndName() {
+        User user = User.builder()
+                .email("test@mail.com")
+                .login("Test")
+                .birthday(LocalDate.of(2012, 12, 12))
+                .build();
+
+        User createdUser = userService.create(user);
+
+        assertTrue(userService.findAll().contains(createdUser));
+        assertEquals(1, createdUser.getId());
+        assertEquals(user.getLogin(), createdUser.getName(), "Name must be equal to login");
+        assertEquals(user.getEmail(), createdUser.getEmail());
+        assertEquals(user.getLogin(), createdUser.getLogin());
+        assertEquals(user.getBirthday(), createdUser.getBirthday());
+    }
+
+    @Test
+    public void create_invalidLogin_throwConditionsNotMetException() {
+        User userLoginWhitespace = User.builder()
+                .name("Test")
+                .email("test@mail.com")
+                .login("Login with whitespace")
+                .birthday(LocalDate.of(2012, 12, 12))
+                .build();
+
+        assertThrows(ConditionsNotMetException.class, () -> userService.create(userLoginWhitespace));
+    }
+
+    @Test
+    public void update_validData_returnUpdatedUser() {
+        User user = User.builder()
+                .name("Test")
+                .email("test@mail.com")
+                .login("Test")
+                .birthday(LocalDate.of(2012, 12, 12))
+                .build();
+
+        User createdUser = userService.create(user);
+
+        User userToUpdate = User.builder()
+                .id(1L)
+                .name("Test Update")
+                .email("update-test@mail.com")
+                .login("Test-Update-Login")
+                .birthday(LocalDate.of(2000, 12, 12))
+                .build();
+
+        User updatedUser = userService.update(userToUpdate);
+
+        assertSame(createdUser, updatedUser, "Users have the same link");
+        assertTrue(userService.findAll().contains(updatedUser));
+        assertEquals(1, userService.findAll().size(), "User list must contain only one object");
+        assertEquals(createdUser.getId(), updatedUser.getId());
+        assertEquals(userToUpdate.getId(), updatedUser.getId());
+        assertEquals(userToUpdate.getName(), updatedUser.getName());
+        assertEquals(userToUpdate.getLogin(), updatedUser.getLogin());
+        assertEquals(userToUpdate.getEmail(), updatedUser.getEmail());
+        assertEquals(userToUpdate.getBirthday(), updatedUser.getBirthday());
+    }
+
+    @Test
+    public void update_idDoesNotExist_throwNotFoundException() {
+        User user = User.builder()
+                .id(999L)
+                .name("Test")
+                .email("test@mail.com")
+                .login("Test")
+                .birthday(LocalDate.of(2000, 12, 12))
+                .build();
+
+        assertThrows(NotFoundException.class, () -> userService.update(user));
+    }
+
+    @Test
+    public void update_invalidLogin_throwConditionsNotMetException() {
+        User user = User.builder()
+                .name("Test")
+                .email("test@mail.com")
+                .login("Test")
+                .birthday(LocalDate.of(2000, 12, 12))
+                .build();
+        userService.create(user);
+
+        User userLoginWhitespace = User.builder()
+                .id(1L)
+                .login("Login with whitespace")
+                .build();
+
+        assertThrows(ConditionsNotMetException.class, () -> userService.update(userLoginWhitespace));
+    }
+
+    @Test
     public void addFriend_noSuchFriend_returnTrue() {
-        User user1 = userStorage.create(User.builder()
+        User user1 = userService.create(User.builder()
                 .name("Test 1")
                 .email("test-1@mail.com")
                 .login("Test-1")
                 .birthday(LocalDate.of(2012, 12, 12))
                 .build());
-        User user2 = userStorage.create(User.builder()
+        User user2 = userService.create(User.builder()
                 .name("Test 2")
                 .email("test-2@mail.com")
                 .login("Test-2")
@@ -46,13 +139,13 @@ public class UserServiceTest {
 
     @Test
     public void addFriend_hasSuchFriend_returnFalse() {
-        User user1 = userStorage.create(User.builder()
+        User user1 = userService.create(User.builder()
                 .name("Test 1")
                 .email("test-1@mail.com")
                 .login("Test-1")
                 .birthday(LocalDate.of(2012, 12, 12))
                 .build());
-        User user2 = userStorage.create(User.builder()
+        User user2 = userService.create(User.builder()
                 .name("Test 2")
                 .email("test-2@mail.com")
                 .login("Test-2")
@@ -73,7 +166,7 @@ public class UserServiceTest {
 
     @Test
     public void addFriend_invalidId_throwsNotFoundException() {
-        User user = userStorage.create(User.builder()
+        User user = userService.create(User.builder()
                 .name("Test 1")
                 .email("test-1@mail.com")
                 .login("Test-1")
@@ -86,13 +179,13 @@ public class UserServiceTest {
 
     @Test
     public void removeFriend_hasSuchFriend_returnTrue() {
-        User user1 = userStorage.create(User.builder()
+        User user1 = userService.create(User.builder()
                 .name("Test 1")
                 .email("test-1@mail.com")
                 .login("Test-1")
                 .birthday(LocalDate.of(2012, 12, 12))
                 .build());
-        User user2 = userStorage.create(User.builder()
+        User user2 = userService.create(User.builder()
                 .name("Test 2")
                 .email("test-2@mail.com")
                 .login("Test-2")
@@ -113,13 +206,13 @@ public class UserServiceTest {
 
     @Test
     public void removeFriend_noSuchFriend_returnFalse() {
-        User user1 = userStorage.create(User.builder()
+        User user1 = userService.create(User.builder()
                 .name("Test 1")
                 .email("test-1@mail.com")
                 .login("Test-1")
                 .birthday(LocalDate.of(2012, 12, 12))
                 .build());
-        User user2 = userStorage.create(User.builder()
+        User user2 = userService.create(User.builder()
                 .name("Test 2")
                 .email("test-2@mail.com")
                 .login("Test-2")
@@ -135,7 +228,7 @@ public class UserServiceTest {
 
     @Test
     public void removeFriend_invalidId_throwsNotFoundException() {
-        User user = userStorage.create(User.builder()
+        User user = userService.create(User.builder()
                 .name("Test 1")
                 .email("test-1@mail.com")
                 .login("Test-1")
@@ -148,19 +241,19 @@ public class UserServiceTest {
 
     @Test
     public void getFriends_returnCollectionOfFriends() {
-        User user = userStorage.create(User.builder()
+        User user = userService.create(User.builder()
                 .name("Test")
                 .email("test-1@mail.com")
                 .login("Test-1")
                 .birthday(LocalDate.of(2012, 12, 12))
                 .build());
-        User friend1 = userStorage.create(User.builder()
+        User friend1 = userService.create(User.builder()
                 .name("Friend 1")
                 .email("friend-1@mail.com")
                 .login("Friend-1")
                 .birthday(LocalDate.of(2012, 12, 12))
                 .build());
-        User friend2 = userStorage.create(User.builder()
+        User friend2 = userService.create(User.builder()
                 .name("Friend 2")
                 .email("friend-2@mail.com")
                 .login("Friend-2")
@@ -179,7 +272,7 @@ public class UserServiceTest {
 
     @Test
     public void getFriends_invalidId_throwsNotFoundException() {
-        userStorage.create(User.builder()
+        userService.create(User.builder()
                 .name("Test 1")
                 .email("test-1@mail.com")
                 .login("Test-1")
@@ -191,26 +284,26 @@ public class UserServiceTest {
 
     @Test
     public void getCommonFriends_returnCollectionOfCommonFriends() {
-        User user1 = userStorage.create(User.builder()
+        User user1 = userService.create(User.builder()
                 .name("Test 1")
                 .email("test-1@mail.com")
                 .login("Test-1")
                 .birthday(LocalDate.of(2012, 12, 12))
                 .build());
-        User user2 = userStorage.create(User.builder()
+        User user2 = userService.create(User.builder()
                 .name("Test 2")
                 .email("test-1@mail.com")
                 .login("Test-1")
                 .birthday(LocalDate.of(2012, 12, 12))
                 .build());
 
-        User friend1 = userStorage.create(User.builder()
+        User friend1 = userService.create(User.builder()
                 .name("Friend 1")
                 .email("friend-1@mail.com")
                 .login("Friend-1")
                 .birthday(LocalDate.of(2012, 12, 12))
                 .build());
-        User friend2 = userStorage.create(User.builder()
+        User friend2 = userService.create(User.builder()
                 .name("Friend 2")
                 .email("friend-2@mail.com")
                 .login("Friend-2")
@@ -230,7 +323,7 @@ public class UserServiceTest {
 
     @Test
     public void getCommonFriends_invalidId_throwsNotFoundException() {
-        User user = userStorage.create(User.builder()
+        User user = userService.create(User.builder()
                 .name("Test 1")
                 .email("test-1@mail.com")
                 .login("Test-1")

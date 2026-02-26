@@ -56,8 +56,8 @@ public class FilmService {
     }
 
     public Film update(final Film film) {
+//        Обработка данных фильма согласно установленной бизнес-логике
         Film currentFilm = checkFilmExists(film.getId());
-        checkReleaseDate(film);
 
         String name = film.getName();
         String description = film.getDescription();
@@ -74,9 +74,11 @@ public class FilmService {
             currentFilm.setDuration(duration);
         }
         if (releaseDate != null) {
+            checkReleaseDate(film);
             currentFilm.setReleaseDate(releaseDate);
         }
 
+//        Запись предобработанных данных в хранилище
         return filmStorage
                 .update(currentFilm)
                 .orElseThrow(() -> new NotFoundException("Film is not found. Film id: " + film.getId()));

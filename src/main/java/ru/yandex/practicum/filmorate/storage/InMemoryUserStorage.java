@@ -17,12 +17,6 @@ import java.util.Optional;
 public class InMemoryUserStorage implements UserStorage {
     private final HashMap<Long, User> users = new HashMap<>();
 
-    private void checkLogin(User user) {
-        if (user.getLogin().contains(" ")) {
-            throw new ConditionsNotMetException("Login must not contain whitespaces");
-        }
-    }
-
     public Collection<User> findAll() {
         log.info("Find all users");
         return users.values();
@@ -43,12 +37,6 @@ public class InMemoryUserStorage implements UserStorage {
     public User create(User user) {
         log.info("Create user initiated");
 
-        checkLogin(user);
-
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-
         user.setId(getNextId());
         user.setFriendsIds(new HashSet<>());
         users.put(user.getId(), user);
@@ -57,39 +45,25 @@ public class InMemoryUserStorage implements UserStorage {
         return user;
     }
 
-    public User update(User user) {
+    public Optional<User> update(User user) {
         Long id = user.getId();
         log.info("Update user initiated. User id: {}", id);
 
         User currentUser = users.get(id);
 
         if (currentUser == null) {
-            throw new NotFoundException("User not found. User id: " + id);
+            return Optional.empty();
         }
 
-        String login = user.getLogin();
-        String email = user.getEmail();
-        String name = user.getName();
-        LocalDate birthday = user.getBirthday();
-
-        if (login != null && !login.isBlank()) {
-            checkLogin(user);
-            currentUser.setLogin(login);
-        }
-        if (email != null && !email.isBlank()) {
-            currentUser.setEmail(email);
-        }
-        if (name != null && !name.isBlank()) {
-            currentUser.setName(name);
-        }
-        if (birthday != null) {
-            currentUser.setBirthday(birthday);
-        }
+        currentUser.setLogin(user.getLogin());
+        currentUser.setEmail(user.getEmail());
+        currentUser.setName(user.getName());
+        currentUser.setBirthday(user.getBirthday());
 
         users.put(id, currentUser);
 
         log.info("User updated. User id: {}", id);
-        return currentUser;
+        return Optional.of(currentUser);
     }
 
     private long getNextId() {
