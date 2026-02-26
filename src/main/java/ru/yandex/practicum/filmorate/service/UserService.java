@@ -20,6 +20,14 @@ public class UserService {
         this.userStorage = userStorage;
     }
 
+    private User checkUserExists(final long id) {
+        User user = userStorage.findOne(id);
+        if (user == null) {
+            throw new NotFoundException("User not found. User id: " + id);
+        }
+        return user;
+    }
+
     public Collection<User> findAll() {
         return userStorage.findAll();
     }
@@ -34,15 +42,9 @@ public class UserService {
 
     public boolean addFriend(Long id, Long friendId) {
         log.info("Add friend initiated. User id: {}, Friend id: {}", id, friendId);
-        User user = userStorage.findOne(id);
-        if (user == null) {
-            throw new NotFoundException("User not found. User id: " + id);
-        }
 
-        User friend = userStorage.findOne(friendId);
-        if (friend == null) {
-            throw new NotFoundException("Friend not found. Friend id: " + friendId);
-        }
+        User user = checkUserExists(id);
+        User friend = checkUserExists(friendId);
 
         log.info("Add friend ended. User id: {}, Friend id: {}", id, friendId);
         return user.getFriendsIds().add(friendId)
@@ -51,15 +53,9 @@ public class UserService {
 
     public boolean removeFriend(Long id, Long friendId) {
         log.info("Remove friend initiated. User id: {}, Friend id: {}", id, friendId);
-        User user = userStorage.findOne(id);
-        if (user == null) {
-            throw new NotFoundException("User not found. User id: " + id);
-        }
 
-        User friend = userStorage.findOne(friendId);
-        if (friend == null) {
-            throw new NotFoundException("Friend not found. Friend id: " + friendId);
-        }
+        User user = checkUserExists(id);
+        User friend = checkUserExists(friendId);
 
         log.info("Remove friend ended. User id: {}, Friend id: {}", id, friendId);
         return user.getFriendsIds().remove(friendId)
@@ -68,10 +64,8 @@ public class UserService {
 
     public Collection<User> getFriends(Long id) {
         log.info("Get friends initiated. User id: {}", id);
-        User user = userStorage.findOne(id);
-        if (user == null) {
-            throw new NotFoundException("User not found. User id: " + id);
-        }
+
+        User user = checkUserExists(id);
 
         log.info("Get friends ended. User id: {}", id);
         return user.getFriendsIds()
@@ -82,15 +76,9 @@ public class UserService {
 
     public Collection<User> getCommonFriends(Long id, Long friendId) {
         log.info("Get common friend initiated. User id: {}, Friend id: {}", id, friendId);
-        User user = userStorage.findOne(id);
-        if (user == null) {
-            throw new NotFoundException("User not found. User id: " + id);
-        }
 
-        User friend = userStorage.findOne(friendId);
-        if (friend == null) {
-            throw new NotFoundException("Friend not found. Friend id: " + friendId);
-        }
+        User user = checkUserExists(id);
+        User friend = checkUserExists(friendId);
 
         Set<Long> commonFriendsIds = new HashSet<>(user.getFriendsIds());
         commonFriendsIds.retainAll(friend.getFriendsIds());
