@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
@@ -72,6 +73,11 @@ public class FilmService {
 
     public Collection<Film> getTopByLikes(int count) {
         log.info("Get top by likes initiated. Count: {}", count);
+
+        if (count <= 0) {
+            throw new ConditionsNotMetException("Count must be positive");
+        }
+
         return filmStorage.findAll()
                 .stream()
                 .sorted(Comparator.comparingInt(f -> ((Film) f).getLikedUsersIds().size()).reversed())
