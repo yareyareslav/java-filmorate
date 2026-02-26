@@ -20,6 +20,18 @@ public class UserService {
         this.userStorage = userStorage;
     }
 
+    public Collection<User> findAll() {
+        return userStorage.findAll();
+    }
+
+    public User create(final User user) {
+        return userStorage.create(user);
+    }
+
+    public User update(final User user) {
+        return userStorage.update(user);
+    }
+
     public boolean addFriend(Long id, Long friendId) {
         log.info("Add friend initiated. User id: {}, Friend id: {}", id, friendId);
         User user = userStorage.findOne(id);

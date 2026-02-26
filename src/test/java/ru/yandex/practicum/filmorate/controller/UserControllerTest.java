@@ -14,7 +14,6 @@ import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import java.time.LocalDate;
 
@@ -30,8 +29,6 @@ public class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private InMemoryUserStorage inMemoryUserStorage;
     @MockBean
     private UserService userService;
 
@@ -53,7 +50,7 @@ public class UserControllerTest {
 
         String userJson = gson.toJson(user, User.class);
 
-        Mockito.when(inMemoryUserStorage.create(Mockito.any(User.class)))
+        Mockito.when(userService.create(Mockito.any(User.class)))
                 .thenReturn(User.builder()
                         .id(1L)
                         .name("Test")
@@ -83,7 +80,7 @@ public class UserControllerTest {
 
         String userJson = gson.toJson(user, User.class);
 
-        Mockito.when(inMemoryUserStorage.create(Mockito.any(User.class)))
+        Mockito.when(userService.create(Mockito.any(User.class)))
                         .thenThrow(ConditionsNotMetException.class);
 
         mockMvc.perform(post("/users")
@@ -104,7 +101,7 @@ public class UserControllerTest {
 
         String userJson = gson.toJson(user, User.class);
 
-        Mockito.when(inMemoryUserStorage.update(Mockito.any(User.class)))
+        Mockito.when(userService.update(Mockito.any(User.class)))
                 .thenReturn(user);
 
         mockMvc.perform(put("/users")
@@ -129,7 +126,7 @@ public class UserControllerTest {
 
         String userJson = gson.toJson(user, User.class);
 
-        Mockito.when(inMemoryUserStorage.update(Mockito.any(User.class)))
+        Mockito.when(userService.update(Mockito.any(User.class)))
                 .thenThrow(NotFoundException.class);
 
         mockMvc.perform(put("/users")
@@ -149,7 +146,7 @@ public class UserControllerTest {
 
         String userJson = gson.toJson(user, User.class);
 
-        Mockito.when(inMemoryUserStorage.update(Mockito.any(User.class)))
+        Mockito.when(userService.update(Mockito.any(User.class)))
                 .thenThrow(ConditionsNotMetException.class);
 
         mockMvc.perform(put("/users")
