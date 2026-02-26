@@ -2,10 +2,8 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.time.LocalDate;
 import java.util.*;
 
 @Slf4j
@@ -41,38 +39,25 @@ public class InMemoryFilmStorage implements FilmStorage {
         return film;
     }
 
-    public Film update(Film film) {
+    public Optional<Film> update(Film film) {
         Long id = film.getId();
         log.info("Update film initiated. Film Id: {}", id);
 
         Film currentFilm = films.get(id);
 
         if (currentFilm == null) {
-            throw new NotFoundException("Film not found. Film id: " + id);
+            return Optional.empty();
         }
 
-        String name = film.getName();
-        String description = film.getDescription();
-        Long duration = film.getDuration();
-        LocalDate releaseDate = film.getReleaseDate();
-
-        if (name != null && !name.isBlank()) {
-            currentFilm.setName(name);
-        }
-        if (description != null && !description.isBlank()) {
-            currentFilm.setDescription(description);
-        }
-        if (duration != null) {
-            currentFilm.setDuration(duration);
-        }
-        if (releaseDate != null) {
-            currentFilm.setReleaseDate(releaseDate);
-        }
+        currentFilm.setName(film.getName());
+        currentFilm.setDescription(film.getDescription());
+        currentFilm.setDuration(film.getDuration());
+        currentFilm.setReleaseDate(film.getReleaseDate());
 
         films.put(id, currentFilm);
 
         log.info("Film updated. Id: {}", id);
-        return currentFilm;
+        return Optional.of(currentFilm);
     }
 
     private long getNextId() {

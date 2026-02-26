@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -55,8 +56,30 @@ public class FilmService {
     }
 
     public Film update(final Film film) {
+        Film currentFilm = checkFilmExists(film.getId());
         checkReleaseDate(film);
-        return filmStorage.update(film);
+
+        String name = film.getName();
+        String description = film.getDescription();
+        Long duration = film.getDuration();
+        LocalDate releaseDate = film.getReleaseDate();
+
+        if (name != null && !name.isBlank()) {
+            currentFilm.setName(name);
+        }
+        if (description != null && !description.isBlank()) {
+            currentFilm.setDescription(description);
+        }
+        if (duration != null) {
+            currentFilm.setDuration(duration);
+        }
+        if (releaseDate != null) {
+            currentFilm.setReleaseDate(releaseDate);
+        }
+
+        return filmStorage
+                .update(currentFilm)
+                .orElseThrow(() -> new NotFoundException("Film is not found. Film id: " + film.getId()));
     }
 
     public boolean addLike(Long id, Long userId) {

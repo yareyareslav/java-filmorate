@@ -41,6 +41,38 @@ public class FilmServiceTest {
     }
 
     @Test
+    public void update_validData_returnUpdatedFilm() {
+        Film film = Film.builder()
+                .name("Test")
+                .description("Test test")
+                .duration(60L)
+                .releaseDate(LocalDate.of(2012, 12, 12))
+                .build();
+
+        Film createdUser = filmService.create(film);
+
+        Film filmToUpdate = Film.builder()
+                .id(1L)
+                .name("Updated Test")
+                .description("Updated Test test")
+                .duration(90L)
+                .releaseDate(LocalDate.of(2000, 12, 12))
+                .build();
+
+        Film updatedFilm = filmService.update(filmToUpdate);
+
+        assertSame(createdUser, updatedFilm, "Films have the same link");
+        assertTrue(filmService.findAll().contains(updatedFilm));
+        assertEquals(1, filmService.findAll().size(), "Film list must contain only one object");
+        assertEquals(createdUser.getId(), updatedFilm.getId());
+        assertEquals(filmToUpdate.getId(), updatedFilm.getId());
+        assertEquals(filmToUpdate.getName(), updatedFilm.getName());
+        assertEquals(filmToUpdate.getDescription(), updatedFilm.getDescription());
+        assertEquals(filmToUpdate.getDuration(), updatedFilm.getDuration());
+        assertEquals(filmToUpdate.getReleaseDate(), updatedFilm.getReleaseDate());
+    }
+
+    @Test
     public void update_invalidReleaseDate_throwConditionsNotMetException() {
         Film film = Film.builder()
                 .name("Test")
@@ -58,6 +90,20 @@ public class FilmServiceTest {
 
         assertThrows(ConditionsNotMetException.class, () -> filmService.update(filmReleaseDateBefore1895));
     }
+
+    @Test
+    public void update_idDoesNotExist_throwNotFoundException() {
+        Film film = Film.builder()
+                .id(999L)
+                .name("Test")
+                .description("Test test")
+                .duration(60L)
+                .releaseDate(LocalDate.of(2012, 12, 12))
+                .build();
+
+        assertThrows(NotFoundException.class, () -> filmService.update(film));
+    }
+
 
     @Test
     public void addLike_hasNoLikeFromTheUser_returnTrue() {
