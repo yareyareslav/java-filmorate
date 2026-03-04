@@ -1,8 +1,9 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.memory;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -42,15 +43,11 @@ public class InMemoryUserStorage implements UserStorage {
         return user;
     }
 
-    public Optional<User> update(User user) {
+    public User update(User user) {
         Long id = user.getId();
         log.info("Update user initiated. User id: {}", id);
 
         User currentUser = users.get(id);
-
-        if (currentUser == null) {
-            return Optional.empty();
-        }
 
         currentUser.setLogin(user.getLogin());
         currentUser.setEmail(user.getEmail());
@@ -60,7 +57,7 @@ public class InMemoryUserStorage implements UserStorage {
         users.put(id, currentUser);
 
         log.info("User updated. User id: {}", id);
-        return Optional.of(currentUser);
+        return currentUser;
     }
 
     private long getNextId() {

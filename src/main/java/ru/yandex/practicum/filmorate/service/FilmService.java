@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -21,6 +22,12 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
 
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
+                       @Qualifier("userDbStorage") UserStorage userStorage) {
+        this.filmStorage = filmStorage;
+        this.userStorage = userStorage;
+    }
+
     private void checkReleaseDate(Film film) {
         LocalDate release = film.getReleaseDate();
         if (release != null && release.isBefore(dateLimit)) {
@@ -38,11 +45,6 @@ public class FilmService {
         return userStorage
                 .findOne(id)
                 .orElseThrow(() -> new NotFoundException("User is not found. User id: " + id));
-    }
-
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
-        this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
     }
 
     public Collection<Film> findAll() {
@@ -78,9 +80,7 @@ public class FilmService {
         }
 
 //        Запись предобработанных данных в хранилище
-        return filmStorage
-                .update(currentFilm)
-                .orElseThrow(() -> new NotFoundException("Film is not found. Film id: " + film.getId()));
+        return filmStorage.update(currentFilm);
     }
 
     public boolean addLike(Long id, Long userId) {

@@ -5,12 +5,4 @@ import ru.yandex.practicum.filmorate.model.Film;
 import java.util.Collection;
 import java.util.Optional;
 
-public interface FilmStorage {
-    Collection<Film> findAll();
-
-    Optional<Film> findOne(Long id);
-
-    Film create(Film film);
-
-    Optional<Film> update(Film film);
-}
+public interface FilmStorage extends BaseStorage<Film> {}

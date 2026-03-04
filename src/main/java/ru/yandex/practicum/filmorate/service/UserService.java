@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -17,9 +18,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class UserService {
+
     private final UserStorage userStorage;
 
-    public UserService(UserStorage userStorage) {
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage) {
         this.userStorage = userStorage;
     }
 
@@ -77,9 +79,7 @@ public class UserService {
             currentUser.setBirthday(birthday);
         }
 
-        return userStorage
-                .update(user)
-                .orElseThrow(() -> new NotFoundException("User is not found. User id: " + user.getId()));
+        return userStorage.update(user);
     }
 
     public boolean addFriend(Long id, Long friendId) {
