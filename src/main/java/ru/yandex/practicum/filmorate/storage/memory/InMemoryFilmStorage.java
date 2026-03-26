@@ -57,6 +57,11 @@ public class InMemoryFilmStorage implements FilmStorage {
         return currentFilm;
     }
 
+    @Override
+    public Film delete(Long id) {
+        return null;
+    }
+
     private long getNextId() {
         long currentMaxId = films.keySet()
                 .stream()

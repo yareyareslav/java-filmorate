@@ -5,4 +5,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import java.util.Collection;
 import java.util.Optional;
 
-public interface FilmStorage extends BaseStorage<Film> {}
+public interface FilmStorage extends BaseStorage<Film> {
+
+}

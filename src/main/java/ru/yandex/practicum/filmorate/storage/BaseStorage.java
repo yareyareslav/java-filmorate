@@ -8,7 +8,9 @@ public interface BaseStorage<T> {
 
     Optional<T> findOne(Long id);
 
-    T create(T film);
+    T create(T entity);
 
     T update(T entity);
+
+    T delete(Long id);
 }

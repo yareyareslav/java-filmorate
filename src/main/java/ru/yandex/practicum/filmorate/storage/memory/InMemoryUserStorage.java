@@ -5,10 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -58,6 +55,40 @@ public class InMemoryUserStorage implements UserStorage {
 
         log.info("User updated. User id: {}", id);
         return currentUser;
+    }
+
+    @Override
+    public User delete(Long id) {
+        return null;
+    }
+
+    public Collection<User> findUserFriends(Long userId) {
+        User user = users.get(userId);
+        return user.getFriendsIds()
+                .stream()
+                .map(this::findOne)
+                .flatMap(Optional::stream)
+                .toList();
+    }
+
+    @Override
+    public Collection<User> findFriends(Long userId) {
+        return List.of();
+    }
+
+    @Override
+    public Collection<User> findCommonFriends(Long userId, Long friendId) {
+        return List.of();
+    }
+
+    @Override
+    public boolean addFriend(Long userId, Long friendId) {
+        return false;
+    }
+
+    @Override
+    public boolean deleteFriend(Long userId, Long friendId) {
+        return false;
     }
 
     private long getNextId() {

@@ -87,12 +87,11 @@ public class UserService {
 
         checkUsersAreDifferent(id, friendId);
 
-        User user = checkUserExists(id);
-        User friend = checkUserExists(friendId);
+        checkUserExists(id);
+        checkUserExists(friendId);
 
         log.info("Add friend ended. User id: {}, Friend id: {}", id, friendId);
-        return user.getFriendsIds().add(friendId)
-                && friend.getFriendsIds().add(id);
+        return userStorage.addFriend(id, friendId);
     }
 
     public boolean removeFriend(Long id, Long friendId) {
@@ -111,14 +110,10 @@ public class UserService {
     public Collection<User> getFriends(Long id) {
         log.info("Get friends initiated. User id: {}", id);
 
-        User user = checkUserExists(id);
+        checkUserExists(id);
 
         log.info("Get friends ended. User id: {}", id);
-        return user.getFriendsIds()
-                .stream()
-                .map(userStorage::findOne)
-                .flatMap(Optional::stream)
-                .toList();
+        return userStorage.findFriends(id);
     }
 
     public Collection<User> getCommonFriends(Long id, Long friendId) {
@@ -126,18 +121,11 @@ public class UserService {
 
         checkUsersAreDifferent(id, friendId);
 
-        User user = checkUserExists(id);
-        User friend = checkUserExists(friendId);
-
-        Set<Long> commonFriendsIds = new HashSet<>(user.getFriendsIds());
-        commonFriendsIds.retainAll(friend.getFriendsIds());
+        checkUserExists(id);
+        checkUserExists(friendId);
 
         log.info("Get common friend ended. User id: {}, Friend id: {}", id, friendId);
-        return commonFriendsIds
-                .stream()
-                .map(userStorage::findOne)
-                .flatMap(Optional::stream)
-                .collect(Collectors.toSet());
+        return userStorage.findCommonFriends(id, friendId);
     }
 
 }

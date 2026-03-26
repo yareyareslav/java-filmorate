@@ -1,7 +1,8 @@
 INSERT INTO users (email, login, name, birthday) VALUES
 ('user1@yandex.ru', 'user1_login', 'Ivan Ivanov', '1990-01-01'),
 ('user2@gmail.com', 'user2_login', 'Petr Petrov', '1995-05-15'),
-('friend_forever@mail.ru', 'best_friend', 'Alexey Smirnov', '2000-12-31');
+('friend_forever@mail.ru', 'best_friend', 'Alexey Smirnov', '2000-12-31'),
+('ff@mail.ru', 'user3_friend', 'Mikhail Smirnov', '2000-12-31');
 
 INSERT INTO films (name, description, release_date, duration)
 VALUES
@@ -13,11 +14,10 @@ INSERT INTO user_friends (user_id, friend_id)
 VALUES
 (1, 2),
 (1, 3),
-(2, 3);
+(4, 3);
 
 INSERT INTO film_likes (film_id, user_id)
 VALUES
 (1, 1),
 (1, 2),
-(1, 3),
-(2, 1);
+(1, 3);
