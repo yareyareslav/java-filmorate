@@ -26,6 +26,25 @@ public class FilmDbStorage implements FilmStorage {
             "VALUES(?, ?, ?, ?)";
     private static final String UPDATE_FILM_QUERY = "UPDATE films SET name = ?, description = ?, duration = ?, release_date = ? WHERE id = ?";
     private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE id = ?";
+    private static final String INSERT_LIKE_QUERY = """
+            INSERT INTO film_likes(film_id, user_id)
+            VALUES(?, ?)
+            """;
+    private static final String DELETE_LIKE_QUERY = """
+            DELETE FROM film_likes
+            WHERE film_id = ? AND user_id = ?
+            """;
+    private static final String FIND_POPULAR_QUERY = """
+            SELECT id, name, description, release_date, duration, likes
+            FROM films
+            JOIN (
+                SELECT film_id, COUNT(user_id) AS likes
+                FROM film_likes
+                GROUP BY film_id
+                ORDER BY likes DESC
+                LIMIT ?
+            ) AS pf ON films.id = pf.film_id
+            """;
 
 
     private static final FilmMapper mapper = new FilmMapper();
@@ -89,5 +108,25 @@ public class FilmDbStorage implements FilmStorage {
             jdbc.update(DELETE_FILM_QUERY, mapper, id);
         }
         return deletedFilm.orElse(null);
+    }
+
+    @Override
+    public boolean addLike(Long filmId, Long userId) {
+        log.trace("Add like initiated");
+        int rowsAffected = jdbc.update(INSERT_LIKE_QUERY, filmId, userId);
+        return rowsAffected > 0;
+    }
+
+    @Override
+    public boolean removeLike(Long filmId, Long userId) {
+        log.trace("Remove like initiated");
+        int rowsAffected = jdbc.update(DELETE_LIKE_QUERY, filmId, userId);
+        return rowsAffected > 0;
+    }
+
+    @Override
+    public Collection<Film> findPopular(Integer limit) {
+        log.trace("Find popular initiated");
+        return jdbc.query(FIND_POPULAR_QUERY, mapper, limit);
     }
 }

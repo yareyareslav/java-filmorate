@@ -12,7 +12,6 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.Comparator;
 
 @Slf4j
 @Service
@@ -86,21 +85,21 @@ public class FilmService {
     public boolean addLike(Long id, Long userId) {
         log.info("Add like initiated. Film id: {}, User id: {}", id, userId);
 
-        Film film = checkFilmExists(id);
+        checkFilmExists(id);
         checkUserExists(userId);
 
         log.info("Add like ended. Film id: {}, User id: {}", id, userId);
-        return film.getLikedUsersIds().add(userId);
+        return filmStorage.addLike(id, userId);
     }
 
     public boolean removeLike(Long id, Long userId) {
         log.info("Remove like initiated. Film id: {}, User id: {}", id, userId);
 
-        Film film = checkFilmExists(id);
+        checkFilmExists(id);
         checkUserExists(userId);
 
         log.info("Remove like ended. Film id: {}, User id: {}", id, userId);
-        return film.getLikedUsersIds().remove(userId);
+        return filmStorage.removeLike(id, userId);
     }
 
     public Collection<Film> getTopByLikes(int count) {
@@ -110,10 +109,6 @@ public class FilmService {
             throw new ConditionsNotMetException("Count must be positive");
         }
 
-        return filmStorage.findAll()
-                .stream()
-                .sorted(Comparator.comparingInt(f -> ((Film) f).getLikedUsersIds().size()).reversed())
-                .limit(count)
-                .toList();
+        return filmStorage.findPopular(count);
     }
 }

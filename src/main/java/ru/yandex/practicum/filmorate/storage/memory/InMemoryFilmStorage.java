@@ -70,4 +70,19 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .orElse(0);
         return ++currentMaxId;
     }
+
+    @Override
+    public boolean addLike(Long filmId, Long userId) {
+        return false;
+    }
+
+    @Override
+    public boolean removeLike(Long filmId, Long userId) {
+        return false;
+    }
+
+    @Override
+    public Collection<Film> findPopular(Integer limit) {
+        return List.of();
+    }
 }

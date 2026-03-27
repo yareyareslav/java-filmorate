@@ -31,9 +31,9 @@ CREATE TABLE IF NOT EXISTS films (
 );
 
 CREATE TABLE IF NOT EXISTS film_likes (
-    film_id BIGINT NOT NULL,
-    user_id BIGINT NOT NULL,
+    film_id BIGINT,
+    user_id BIGINT,
     PRIMARY KEY (film_id, user_id),
-    CONSTRAINT fk_film_id FOREIGN KEY (film_id) REFERENCES films(id) ON DELETE CASCADE,
-    CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (film_id) REFERENCES films(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
