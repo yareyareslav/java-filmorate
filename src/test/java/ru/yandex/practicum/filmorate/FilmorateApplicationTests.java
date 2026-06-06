@@ -1,31 +1,39 @@
 package ru.yandex.practicum.filmorate;
 
-import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.localDB.UserDbStorage;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @JdbcTest
-@AutoConfigureTestDatabase
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@Import({UserDbStorage.class, UserMapper.class})
 class FilmorateApplicationTests {
-	private final UserDbStorage userStorage;
+    @Autowired
+    private UserDbStorage userStorage;
 
-	@Test
-	public void findOneUser_specificUser_idExistsInDb() {
-		Optional<User> userOptional = userStorage.findOne(1L);
+    @Test
+    public void createAndFindUser_userPersistedInDb() {
+        User user = User.builder()
+                .name("Test User")
+                .email("test@mail.com")
+                .login("test_login")
+                .birthday(LocalDate.of(1990, 1, 1))
+                .build();
 
-		assertTrue(userOptional.isPresent());
-		assertEquals(1L, userOptional.get().getId());
-	}
+        User createdUser = userStorage.create(user);
+        Optional<User> foundUser = userStorage.findOne(createdUser.getId());
 
+        assertTrue(foundUser.isPresent());
+        assertEquals(createdUser.getId(), foundUser.get().getId());
+        assertEquals(user.getEmail(), foundUser.get().getEmail());
+        assertEquals(user.getLogin(), foundUser.get().getLogin());
+    }
 }

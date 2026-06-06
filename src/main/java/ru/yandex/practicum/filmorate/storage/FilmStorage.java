@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.FilmMpa;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 
 public interface FilmStorage extends BaseStorage<Film> {
     boolean addLike(Long filmId, Long userId);
@@ -11,4 +13,8 @@ public interface FilmStorage extends BaseStorage<Film> {
     boolean removeLike(Long filmId, Long userId);
 
     Collection<Film> findPopular(Integer limit);
+
+    void addFilmGenresConnection(Long filmId, Set<Long> genreIds);
+
+    void addFilmMpaConnection(Long filmId, Long mpaId);
 }

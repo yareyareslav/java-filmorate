@@ -10,7 +10,10 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -18,9 +21,20 @@ import java.util.Optional;
 public class GenreDbStorage implements GenreStorage {
     private static final String FIND_ALL_QUERY = "SELECT * FROM genres";
     private static final String FIND_ONE_QUERY = "SELECT * FROM genres WHERE id = ?";
+    private static final String FIND_ALL_BY_IDS_QUERY = """
+            SELECT *
+            FROM genres
+            WHERE id in (%s)
+            """;
+    private static final String FIND_ALL_GENRES_BY_FILM_ID = """
+            SELECT g.*
+            FROM genres g
+            JOIN film_genre fg ON g.id = fg.genre_id
+            WHERE fg.film_id = ?
+    """;
 
     private final JdbcTemplate jdbc;
-    private final GenreMapper mapper = new GenreMapper();
+    private final static GenreMapper mapper = new GenreMapper();
 
     @Override
     public Collection<Genre> findAll() {
@@ -51,5 +65,23 @@ public class GenreDbStorage implements GenreStorage {
     @Override
     public Genre delete(Long id) {
         return null;
+    }
+
+    @Override
+    public List<Genre> findAllByIds(Set<Long> ids) {
+        log.info("FIND ALL BY IDS: {}", ids);
+
+        String placeholders = ids.stream()
+                .map(id -> "?")
+                .collect(Collectors.joining(","));
+
+        String sqlQuery = FIND_ALL_BY_IDS_QUERY.formatted(placeholders);
+
+        return jdbc.query(sqlQuery, mapper, ids.toArray());
+    }
+
+    @Override
+    public List<Genre> findAllGenresOfFilmId(long filmId) {
+        return jdbc.query(FIND_ALL_GENRES_BY_FILM_ID, mapper, filmId);
     }
 }

@@ -99,12 +99,11 @@ public class UserService {
 
         checkUsersAreDifferent(id, friendId);
 
-        User user = checkUserExists(id);
-        User friend = checkUserExists(friendId);
+        checkUserExists(id);
+        checkUserExists(friendId);
 
         log.info("Remove friend ended. User id: {}, Friend id: {}", id, friendId);
-        return user.getFriendsIds().remove(friendId)
-                && friend.getFriendsIds().remove(id);
+        return userStorage.deleteFriend(id, friendId);
     }
 
     public Collection<User> getFriends(Long id) {

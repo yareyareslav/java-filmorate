@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.mapper;
 
 import org.springframework.jdbc.core.RowMapper;
+import ru.yandex.practicum.filmorate.dto.mpa.MpaResponseDto;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.sql.ResultSet;
@@ -14,5 +15,12 @@ public class MpaMapper implements RowMapper<Mpa> {
                 .id(rs.getLong("id"))
                 .name(rs.getString("name"))
                 .build();
+    }
+
+    public static MpaResponseDto toResponse(Mpa mpa) {
+        return new MpaResponseDto(
+                mpa != null ? mpa.getId() : null,
+                mpa != null ? mpa.getName() : null
+        );
     }
 }

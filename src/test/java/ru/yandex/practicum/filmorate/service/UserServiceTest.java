@@ -2,24 +2,42 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.memory.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
+    @Mock
+    private UserStorage userStorage;
+
     private UserService userService;
 
     @BeforeEach
     public void init() {
-        UserStorage userStorage = new InMemoryUserStorage();
         userService = new UserService(userStorage);
+    }
+
+    private User validUser() {
+        return User.builder()
+                .name("Test")
+                .email("test@mail.com")
+                .login("Test")
+                .birthday(LocalDate.of(2012, 12, 12))
+                .build();
     }
 
     @Test
@@ -30,10 +48,15 @@ public class UserServiceTest {
                 .birthday(LocalDate.of(2012, 12, 12))
                 .build();
 
+        when(userStorage.create(any(User.class))).thenAnswer(invocation -> {
+            User created = invocation.getArgument(0);
+            created.setId(1L);
+            return created;
+        });
+
         User createdUser = userService.create(user);
 
-        assertTrue(userService.findAll().contains(createdUser));
-        assertEquals(1, createdUser.getId());
+        assertEquals(1L, createdUser.getId());
         assertEquals(user.getLogin(), createdUser.getName(), "Name must be equal to login");
         assertEquals(user.getEmail(), createdUser.getEmail());
         assertEquals(user.getLogin(), createdUser.getLogin());
@@ -50,18 +73,13 @@ public class UserServiceTest {
                 .build();
 
         assertThrows(ConditionsNotMetException.class, () -> userService.create(userLoginWhitespace));
+        verifyNoInteractions(userStorage);
     }
 
     @Test
     public void update_validData_returnUpdatedUser() {
-        User user = User.builder()
-                .name("Test")
-                .email("test@mail.com")
-                .login("Test")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build();
-
-        User createdUser = userService.create(user);
+        User existingUser = validUser();
+        existingUser.setId(1L);
 
         User userToUpdate = User.builder()
                 .id(1L)
@@ -71,12 +89,11 @@ public class UserServiceTest {
                 .birthday(LocalDate.of(2000, 12, 12))
                 .build();
 
+        when(userStorage.findOne(1L)).thenReturn(Optional.of(existingUser));
+        when(userStorage.update(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
         User updatedUser = userService.update(userToUpdate);
 
-        assertSame(createdUser, updatedUser, "Users have the same link");
-        assertTrue(userService.findAll().contains(updatedUser));
-        assertEquals(1, userService.findAll().size(), "User list must contain only one object");
-        assertEquals(createdUser.getId(), updatedUser.getId());
         assertEquals(userToUpdate.getId(), updatedUser.getId());
         assertEquals(userToUpdate.getName(), updatedUser.getName());
         assertEquals(userToUpdate.getLogin(), updatedUser.getLogin());
@@ -94,18 +111,17 @@ public class UserServiceTest {
                 .birthday(LocalDate.of(2000, 12, 12))
                 .build();
 
+        when(userStorage.findOne(999L)).thenReturn(Optional.empty());
+
         assertThrows(NotFoundException.class, () -> userService.update(user));
     }
 
     @Test
     public void update_invalidLogin_throwConditionsNotMetException() {
-        User user = User.builder()
-                .name("Test")
-                .email("test@mail.com")
-                .login("Test")
-                .birthday(LocalDate.of(2000, 12, 12))
-                .build();
-        userService.create(user);
+        User existingUser = validUser();
+        existingUser.setId(1L);
+
+        when(userStorage.findOne(1L)).thenReturn(Optional.of(existingUser));
 
         User userLoginWhitespace = User.builder()
                 .id(1L)
@@ -113,157 +129,78 @@ public class UserServiceTest {
                 .build();
 
         assertThrows(ConditionsNotMetException.class, () -> userService.update(userLoginWhitespace));
+        verify(userStorage, never()).update(any());
     }
 
     @Test
     public void addFriend_noSuchFriend_returnTrue() {
-        User user1 = userService.create(User.builder()
-                .name("Test 1")
-                .email("test-1@mail.com")
-                .login("Test-1")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build());
-        User user2 = userService.create(User.builder()
-                .name("Test 2")
-                .email("test-2@mail.com")
-                .login("Test-2")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build());
+        when(userStorage.findOne(1L)).thenReturn(Optional.of(User.builder().id(1L).build()));
+        when(userStorage.findOne(2L)).thenReturn(Optional.of(User.builder().id(2L).build()));
+        when(userStorage.addFriend(1L, 2L)).thenReturn(true);
 
-        boolean result = userService.addFriend(user1.getId(), user2.getId());
-
-        assertTrue(result);
-        assertTrue(user1.getFriendsIds().contains(user2.getId()));
-        assertTrue(user2.getFriendsIds().contains(user1.getId()));
+        assertTrue(userService.addFriend(1L, 2L));
+        verify(userStorage).addFriend(1L, 2L);
     }
 
     @Test
     public void addFriend_hasSuchFriend_returnFalse() {
-        User user1 = userService.create(User.builder()
-                .name("Test 1")
-                .email("test-1@mail.com")
-                .login("Test-1")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build());
-        User user2 = userService.create(User.builder()
-                .name("Test 2")
-                .email("test-2@mail.com")
-                .login("Test-2")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build());
+        when(userStorage.findOne(1L)).thenReturn(Optional.of(User.builder().id(1L).build()));
+        when(userStorage.findOne(2L)).thenReturn(Optional.of(User.builder().id(2L).build()));
+        when(userStorage.addFriend(1L, 2L)).thenReturn(false);
 
-        userService.addFriend(user1.getId(), user2.getId());
+        assertFalse(userService.addFriend(1L, 2L));
+    }
 
-        assertTrue(user1.getFriendsIds().contains(user2.getId()));
-        assertTrue(user2.getFriendsIds().contains(user1.getId()));
-
-        boolean result = userService.addFriend(user2.getId(), user1.getId());
-
-        assertFalse(result);
-        assertTrue(user1.getFriendsIds().contains(user2.getId()));
-        assertTrue(user2.getFriendsIds().contains(user1.getId()));
+    @Test
+    public void addFriend_sameIds_throwConditionsNotMetException() {
+        assertThrows(ConditionsNotMetException.class, () -> userService.addFriend(1L, 1L));
+        verifyNoInteractions(userStorage);
     }
 
     @Test
     public void addFriend_invalidId_throwsNotFoundException() {
-        User user = userService.create(User.builder()
-                .name("Test 1")
-                .email("test-1@mail.com")
-                .login("Test-1")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build());
+        when(userStorage.findOne(1L)).thenReturn(Optional.of(User.builder().id(1L).build()));
+        when(userStorage.findOne(999L)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> userService.addFriend(user.getId(), 999L));
-        assertThrows(NotFoundException.class, () -> userService.addFriend(999L, user.getId()));
+        assertThrows(NotFoundException.class, () -> userService.addFriend(1L, 999L));
+        assertThrows(NotFoundException.class, () -> userService.addFriend(999L, 1L));
     }
 
     @Test
     public void removeFriend_hasSuchFriend_returnTrue() {
-        User user1 = userService.create(User.builder()
-                .name("Test 1")
-                .email("test-1@mail.com")
-                .login("Test-1")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build());
-        User user2 = userService.create(User.builder()
-                .name("Test 2")
-                .email("test-2@mail.com")
-                .login("Test-2")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build());
+        when(userStorage.findOne(1L)).thenReturn(Optional.of(User.builder().id(1L).build()));
+        when(userStorage.findOne(2L)).thenReturn(Optional.of(User.builder().id(2L).build()));
+        when(userStorage.deleteFriend(1L, 2L)).thenReturn(true);
 
-        userService.addFriend(user1.getId(), user2.getId());
-
-        assertTrue(user1.getFriendsIds().contains(user2.getId()));
-        assertTrue(user2.getFriendsIds().contains(user1.getId()));
-
-        boolean result = userService.removeFriend(user1.getId(), user2.getId());
-
-        assertTrue(result);
-        assertFalse(user1.getFriendsIds().contains(user2.getId()));
-        assertFalse(user2.getFriendsIds().contains(user1.getId()));
+        assertTrue(userService.removeFriend(1L, 2L));
     }
 
     @Test
     public void removeFriend_noSuchFriend_returnFalse() {
-        User user1 = userService.create(User.builder()
-                .name("Test 1")
-                .email("test-1@mail.com")
-                .login("Test-1")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build());
-        User user2 = userService.create(User.builder()
-                .name("Test 2")
-                .email("test-2@mail.com")
-                .login("Test-2")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build());
+        when(userStorage.findOne(1L)).thenReturn(Optional.of(User.builder().id(1L).build()));
+        when(userStorage.findOne(2L)).thenReturn(Optional.of(User.builder().id(2L).build()));
+        when(userStorage.deleteFriend(1L, 2L)).thenReturn(false);
 
-        boolean result = userService.removeFriend(user1.getId(), user2.getId());
-
-        assertFalse(result);
-        assertFalse(user1.getFriendsIds().contains(user2.getId()));
-        assertFalse(user2.getFriendsIds().contains(user1.getId()));
+        assertFalse(userService.removeFriend(1L, 2L));
     }
 
     @Test
     public void removeFriend_invalidId_throwsNotFoundException() {
-        User user = userService.create(User.builder()
-                .name("Test 1")
-                .email("test-1@mail.com")
-                .login("Test-1")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build());
+        when(userStorage.findOne(999L)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> userService.removeFriend(user.getId(), 999L));
-        assertThrows(NotFoundException.class, () -> userService.removeFriend(999L, user.getId()));
+        assertThrows(NotFoundException.class, () -> userService.removeFriend(999L, 1L));
     }
 
     @Test
     public void getFriends_returnCollectionOfFriends() {
-        User user = userService.create(User.builder()
-                .name("Test")
-                .email("test-1@mail.com")
-                .login("Test-1")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build());
-        User friend1 = userService.create(User.builder()
-                .name("Friend 1")
-                .email("friend-1@mail.com")
-                .login("Friend-1")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build());
-        User friend2 = userService.create(User.builder()
-                .name("Friend 2")
-                .email("friend-2@mail.com")
-                .login("Friend-2")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build());
+        User user = User.builder().id(1L).build();
+        User friend1 = User.builder().id(2L).name("Friend 1").build();
+        User friend2 = User.builder().id(3L).name("Friend 2").build();
 
-        userService.addFriend(user.getId(), friend1.getId());
-        userService.addFriend(user.getId(), friend2.getId());
+        when(userStorage.findOne(1L)).thenReturn(Optional.of(user));
+        when(userStorage.findFriends(1L)).thenReturn(List.of(friend1, friend2));
 
-        Collection<User> friends = userService.getFriends(user.getId());
+        Collection<User> friends = userService.getFriends(1L);
 
         assertEquals(2, friends.size());
         assertTrue(friends.contains(friend1));
@@ -272,65 +209,31 @@ public class UserServiceTest {
 
     @Test
     public void getFriends_invalidId_throwsNotFoundException() {
-        userService.create(User.builder()
-                .name("Test 1")
-                .email("test-1@mail.com")
-                .login("Test-1")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build());
+        when(userStorage.findOne(999L)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> userService.getFriends(999L));
     }
 
     @Test
     public void getCommonFriends_returnCollectionOfCommonFriends() {
-        User user1 = userService.create(User.builder()
-                .name("Test 1")
-                .email("test-1@mail.com")
-                .login("Test-1")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build());
-        User user2 = userService.create(User.builder()
-                .name("Test 2")
-                .email("test-1@mail.com")
-                .login("Test-1")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build());
+        User friend1 = User.builder().id(3L).name("Friend 1").build();
 
-        User friend1 = userService.create(User.builder()
-                .name("Friend 1")
-                .email("friend-1@mail.com")
-                .login("Friend-1")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build());
-        User friend2 = userService.create(User.builder()
-                .name("Friend 2")
-                .email("friend-2@mail.com")
-                .login("Friend-2")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build());
+        when(userStorage.findOne(1L)).thenReturn(Optional.of(User.builder().id(1L).build()));
+        when(userStorage.findOne(2L)).thenReturn(Optional.of(User.builder().id(2L).build()));
+        when(userStorage.findCommonFriends(1L, 2L)).thenReturn(List.of(friend1));
 
-        userService.addFriend(user1.getId(), friend1.getId());
-        userService.addFriend(user1.getId(), friend2.getId());
-        userService.addFriend(user2.getId(), friend1.getId());
-
-        Collection<User> commonFriends = userService.getCommonFriends(user1.getId(), user2.getId());
+        Collection<User> commonFriends = userService.getCommonFriends(1L, 2L);
 
         assertEquals(1, commonFriends.size());
         assertTrue(commonFriends.contains(friend1));
-        assertFalse(commonFriends.contains(friend2));
     }
 
     @Test
     public void getCommonFriends_invalidId_throwsNotFoundException() {
-        User user = userService.create(User.builder()
-                .name("Test 1")
-                .email("test-1@mail.com")
-                .login("Test-1")
-                .birthday(LocalDate.of(2012, 12, 12))
-                .build());
+        when(userStorage.findOne(1L)).thenReturn(Optional.of(User.builder().id(1L).build()));
+        when(userStorage.findOne(999L)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> userService.getCommonFriends(user.getId(), 999L));
-        assertThrows(NotFoundException.class, () -> userService.getCommonFriends(999L, user.getId()));
+        assertThrows(NotFoundException.class, () -> userService.getCommonFriends(1L, 999L));
+        assertThrows(NotFoundException.class, () -> userService.getCommonFriends(999L, 1L));
     }
 }

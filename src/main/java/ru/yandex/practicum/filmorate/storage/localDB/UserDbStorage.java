@@ -43,7 +43,10 @@ public class UserDbStorage implements UserStorage {
             INSERT INTO user_friends(user_id, friend_id)
             VALUES(?, ?)
             """;
-    private static final String DELETE_FRIEND_QUERY = "DELETE FROM user_friend WHERE user_id = ? AND friend_id = ?";
+    private static final String DELETE_FRIEND_QUERY = """
+            DELETE FROM user_friends
+            WHERE user_id = ? AND friend_id = ?
+            """;
 
     private final JdbcTemplate jdbc;
 
@@ -72,9 +75,9 @@ public class UserDbStorage implements UserStorage {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(conn -> {
             PreparedStatement ps = conn.prepareStatement(INSERT_USER_QUERY, new String[]{"id"});
-            ps.setString(1, user.getName());
-            ps.setString(2, user.getEmail());
-            ps.setString(3, user.getLogin());
+            ps.setString(1, user.getEmail());
+            ps.setString(2, user.getLogin());
+            ps.setString(3, user.getName());
             ps.setDate(4, Date.valueOf(user.getBirthday()));
             return ps;
         }, keyHolder);
@@ -91,9 +94,9 @@ public class UserDbStorage implements UserStorage {
         Long id = user.getId();
         jdbc.update(conn -> {
             PreparedStatement ps = conn.prepareStatement(UPDATE_USER_QUERY);
-            ps.setString(1, user.getName());
-            ps.setString(2, user.getEmail());
-            ps.setString(3, user.getLogin());
+            ps.setString(1, user.getEmail());
+            ps.setString(2, user.getLogin());
+            ps.setString(3, user.getName());
             ps.setDate(4, Date.valueOf(user.getBirthday()));
             ps.setLong(5, id);
             return ps;

@@ -7,14 +7,19 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.mapper.FilmGenreMapper;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
+import ru.yandex.practicum.filmorate.mapper.FilmMpaMapper;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.FilmMpa;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 @Slf4j
@@ -45,6 +50,19 @@ public class FilmDbStorage implements FilmStorage {
                 LIMIT ?
             ) AS pf ON films.id = pf.film_id
             """;
+    private static final String INSERT_FILM_GENRE_CONN_QUERY = """
+            INSERT INTO film_genre(film_id, genre_id)
+            VALUES (?, ?)
+            """;
+    private static final String INSERT_FILM_MPA_CONN_QUERY = """
+            INSERT INTO film_mpa(film_id, mpa_id)
+            VALUES (?, ?)
+            """;
+    private static final String FIND_MPA_OF_FILM_QUERY = """
+            SELECT *
+            FROM film_mpa
+            WHERE film_id = ?
+            """;
 
 
     private static final FilmMapper mapper = new FilmMapper();
@@ -68,7 +86,7 @@ public class FilmDbStorage implements FilmStorage {
 
     public Film create(Film film) {
         log.trace("Create film initiated");
-        KeyHolder keyHolder = new GeneratedKeyHolder();
+        KeyHolder keyHolderFilm = new GeneratedKeyHolder();
         jdbc.update(conn -> {
             PreparedStatement ps = conn.prepareStatement(INSERT_FILM_QUERY, new String[]{"id"});
             ps.setString(1, film.getName());
@@ -76,12 +94,13 @@ public class FilmDbStorage implements FilmStorage {
             ps.setLong(3, film.getDuration());
             ps.setDate(4, Date.valueOf(film.getReleaseDate()));
             return ps;
-        }, keyHolder);
-        if (keyHolder.getKey() == null) {
+        }, keyHolderFilm);
+        if (keyHolderFilm.getKey() == null) {
             return null;
         }
-        Long id = keyHolder.getKey().longValue();
+        Long id = keyHolderFilm.getKey().longValue();
         film.setId(id);
+
         return film;
     }
 
@@ -128,5 +147,25 @@ public class FilmDbStorage implements FilmStorage {
     public Collection<Film> findPopular(Integer limit) {
         log.trace("Find popular initiated");
         return jdbc.query(FIND_POPULAR_QUERY, mapper, limit);
+    }
+
+    @Override
+    public void addFilmGenresConnection(Long filmId, Set<Long> genreIds) {
+        log.trace("Add film genres connection initiated");
+        jdbc.batchUpdate(
+                INSERT_FILM_GENRE_CONN_QUERY,
+                genreIds,
+                genreIds.size(),
+                (ps, genreId) -> {
+                    ps.setLong(1, filmId);
+                    ps.setLong(2, genreId);
+                }
+        );
+    }
+
+    @Override
+    public void addFilmMpaConnection(Long filmId, Long mpaId) {
+        log.trace("Add film mpa connection initiated");
+        jdbc.update(INSERT_FILM_MPA_CONN_QUERY, filmId, mpaId);
     }
 }

@@ -2,17 +2,13 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.service.MpaService;
 
 import java.util.Collection;
 
-@Controller
+@RestController
 @RequestMapping("/mpa")
 @RequiredArgsConstructor
 public class MpaController {
@@ -26,7 +22,7 @@ public class MpaController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Mpa findOne(@RequestParam Long id) {
+    public Mpa findOne(@PathVariable Long id) {
         return mpaService.findOne(id);
     }
 }
