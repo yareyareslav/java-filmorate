@@ -34,7 +34,7 @@ public class GenreDbStorage implements GenreStorage {
     """;
 
     private final JdbcTemplate jdbc;
-    private final static GenreMapper mapper = new GenreMapper();
+    private static final GenreMapper mapper = new GenreMapper();
 
     @Override
     public Collection<Genre> findAll() {
