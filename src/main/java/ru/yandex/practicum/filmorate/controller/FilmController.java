@@ -7,7 +7,6 @@ import ru.yandex.practicum.filmorate.dto.OnCreate;
 import ru.yandex.practicum.filmorate.dto.film.FilmExtraInfoResponseDto;
 import ru.yandex.practicum.filmorate.dto.film.FilmRequestDto;
 import ru.yandex.practicum.filmorate.dto.film.FilmResponseDto;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;

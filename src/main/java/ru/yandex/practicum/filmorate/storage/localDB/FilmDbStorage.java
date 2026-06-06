@@ -7,12 +7,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.mapper.FilmGenreMapper;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
-import ru.yandex.practicum.filmorate.mapper.FilmMpaMapper;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.FilmMpa;
-import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.Date;

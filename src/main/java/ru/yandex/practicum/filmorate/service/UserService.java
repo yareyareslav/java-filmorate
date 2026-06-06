@@ -10,10 +10,6 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
