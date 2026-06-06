@@ -22,7 +22,7 @@ import java.util.Optional;
 public class UserDbStorage implements UserStorage {
     private static final String FIND_ALL_QUERY = "SELECT * FROM users";
     private static final String FIND_ONE_QUERY = "SELECT * FROM users WHERE id = ?";
-    private static final String INSERT_USER_QUERY = """ 
+    private static final String INSERT_USER_QUERY = """
             INSERT INTO users(email, login, name, birthday)
             VALUES(?, ?, ?, ?)
             """;
