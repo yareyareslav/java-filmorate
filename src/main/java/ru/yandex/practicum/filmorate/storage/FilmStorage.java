@@ -1,16 +1,18 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
-import java.util.Optional;
+import java.util.Set;
 
-public interface FilmStorage {
-    Collection<Film> findAll();
+@Component
+public interface FilmStorage extends BaseStorage<Film> {
+    boolean addLike(Long filmId, Long userId);
 
-    Optional<Film> findOne(Long id);
+    boolean removeLike(Long filmId, Long userId);
 
-    Film create(Film film);
+    Collection<Film> findPopular(Integer limit);
 
-    Optional<Film> update(Film film);
+    void addFilmGenresConnection(Long filmId, Set<Long> genreIds);
 }

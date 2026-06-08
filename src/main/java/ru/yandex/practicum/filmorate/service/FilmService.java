@@ -1,17 +1,29 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.film.FilmExtraInfoResponseDto;
+import ru.yandex.practicum.filmorate.dto.film.FilmRequestDto;
+import ru.yandex.practicum.filmorate.dto.film.FilmResponseDto;
+import ru.yandex.practicum.filmorate.dto.genre.GenreRequestDto;
+import ru.yandex.practicum.filmorate.dto.genre.GenreResponseDto;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
+import ru.yandex.practicum.filmorate.mapper.GenreMapper;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.Comparator;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -20,10 +32,24 @@ public class FilmService {
 
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+    private final MpaStorage mpaStorage;
+    private final GenreStorage genreStorage;
 
-    private void checkReleaseDate(Film film) {
-        LocalDate release = film.getReleaseDate();
+    public FilmService(
+            @Qualifier("filmDbStorage") FilmStorage filmStorage,
+            @Qualifier("userDbStorage") UserStorage userStorage,
+            @Qualifier("mpaDbStorage") MpaStorage mpaStorage,
+            @Qualifier("genreDbStorage") GenreStorage genreStorage
+    ) {
+        this.filmStorage = filmStorage;
+        this.userStorage = userStorage;
+        this.mpaStorage = mpaStorage;
+        this.genreStorage = genreStorage;
+    }
+
+    private void checkReleaseDate(LocalDate release) {
         if (release != null && release.isBefore(dateLimit)) {
+            log.warn("Release date {} is before 28.12.1985", release);
             throw new ConditionsNotMetException("Release date must be after 28.12.1895");
         }
     }
@@ -31,37 +57,89 @@ public class FilmService {
     private Film checkFilmExists(final long id) {
         return filmStorage
                 .findOne(id)
-                .orElseThrow(() -> new NotFoundException("Film is not found. Film id: " + id));
+                .orElseThrow(() -> {
+                    log.warn("Film not found. Id: {}", id);
+                    return new NotFoundException("Film is not found. Film id: " + id);
+                });
     }
 
     private User checkUserExists(final long id) {
         return userStorage
                 .findOne(id)
-                .orElseThrow(() -> new NotFoundException("User is not found. User id: " + id));
+                .orElseThrow(() -> {
+                    log.warn("User not found. Id: {}", id);
+                    return new NotFoundException("User is not found. User id: " + id);
+                });
     }
 
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
-        this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
+    private Mpa checkMpaExists(final long id) {
+        return mpaStorage
+                .findOne(id)
+                .orElseThrow(() -> {
+                    log.warn("Mpa not found. Id: {}", id);
+                    return new NotFoundException("Mpa is not found. Mpa id: " + id);
+                });
     }
 
-    public Collection<Film> findAll() {
-        return filmStorage.findAll();
+    private List<Genre> checkGenresExists(final Set<Long> ids) {
+        return genreStorage.findAllByIds(ids);
     }
 
-    public Film create(final Film film) {
-        checkReleaseDate(film);
-        return filmStorage.create(film);
+    public Collection<FilmExtraInfoResponseDto> findAll() {
+        Collection<Film> films = filmStorage.findAll();
+        Map<Long, Set<Genre>> genresByFilmId = loadGenresByFilmIds(films);
+
+        return films.stream()
+                .map(film -> mapToExtraInfoResponse(film, genresByFilmId))
+                .toList();
     }
 
-    public Film update(final Film film) {
-//        Обработка данных фильма согласно установленной бизнес-логике
-        Film currentFilm = checkFilmExists(film.getId());
+    public FilmExtraInfoResponseDto findById(final long id) {
+        Film film = checkFilmExists(id);
+        return mapToExtraInfoResponse(film, loadGenresByFilmIds(List.of(film)));
+    }
 
-        String name = film.getName();
-        String description = film.getDescription();
-        Long duration = film.getDuration();
-        LocalDate releaseDate = film.getReleaseDate();
+    public FilmExtraInfoResponseDto create(final FilmRequestDto filmDto) {
+        checkReleaseDate(filmDto.getReleaseDate());
+
+        Set<Long> existingGenreIds = null;
+        TreeSet<GenreResponseDto> genreResponseDtos = null;
+
+        if (filmDto.getGenres() != null) {
+            Set<Long> genreIds = filmDto.getGenres().stream()
+                    .map(GenreRequestDto::getId).collect(Collectors.toSet());
+            List<Genre> existingGenres = checkGenresExists(genreIds);
+            existingGenreIds = existingGenres.stream()
+                    .map(Genre::getId).collect(Collectors.toSet());
+            if (genreIds.size() != existingGenreIds.size()) {
+                Set<Long> diff = new HashSet<>(genreIds);
+                diff.removeAll(existingGenreIds);
+                throw new NotFoundException("These genres are not found: " + diff);
+            }
+            genreResponseDtos = existingGenres.stream()
+                    .map(GenreMapper::toResponse)
+                    .collect(Collectors.toCollection(
+                            () -> new TreeSet<>(Comparator.comparing(GenreResponseDto::getId))
+                    ));
+        }
+
+        Mpa mpa = checkMpaExists(filmDto.getMpa().getId());
+        Film createdFilm = filmStorage.create(FilmMapper.toEntity(filmDto, mpa));
+
+        if (existingGenreIds != null && !existingGenreIds.isEmpty()) {
+            filmStorage.addFilmGenresConnection(createdFilm.getId(), existingGenreIds);
+        }
+
+        return FilmMapper.toExtraInfoResponse(createdFilm, null, genreResponseDtos);
+    }
+
+    public FilmResponseDto update(final FilmRequestDto filmDto) {
+        Film currentFilm = checkFilmExists(filmDto.getId());
+
+        String name = filmDto.getName();
+        String description = filmDto.getDescription();
+        Long duration = filmDto.getDuration();
+        LocalDate releaseDate = filmDto.getReleaseDate();
 
         if (name != null && !name.isBlank()) {
             currentFilm.setName(name);
@@ -73,47 +151,64 @@ public class FilmService {
             currentFilm.setDuration(duration);
         }
         if (releaseDate != null) {
-            checkReleaseDate(film);
+            checkReleaseDate(filmDto.getReleaseDate());
             currentFilm.setReleaseDate(releaseDate);
         }
+        if (filmDto.getMpa() != null) {
+            currentFilm.setMpa(checkMpaExists(filmDto.getMpa().getId()));
+        }
 
-//        Запись предобработанных данных в хранилище
-        return filmStorage
-                .update(currentFilm)
-                .orElseThrow(() -> new NotFoundException("Film is not found. Film id: " + film.getId()));
+        return FilmMapper.toResponse(filmStorage.update(currentFilm));
     }
 
     public boolean addLike(Long id, Long userId) {
         log.info("Add like initiated. Film id: {}, User id: {}", id, userId);
 
-        Film film = checkFilmExists(id);
+        checkFilmExists(id);
         checkUserExists(userId);
 
         log.info("Add like ended. Film id: {}, User id: {}", id, userId);
-        return film.getLikedUsersIds().add(userId);
+        return filmStorage.addLike(id, userId);
     }
 
     public boolean removeLike(Long id, Long userId) {
         log.info("Remove like initiated. Film id: {}, User id: {}", id, userId);
 
-        Film film = checkFilmExists(id);
+        checkFilmExists(id);
         checkUserExists(userId);
 
         log.info("Remove like ended. Film id: {}, User id: {}", id, userId);
-        return film.getLikedUsersIds().remove(userId);
+        return filmStorage.removeLike(id, userId);
     }
 
-    public Collection<Film> getTopByLikes(int count) {
+    public Collection<FilmExtraInfoResponseDto> getTopByLikes(int count) {
         log.info("Get top by likes initiated. Count: {}", count);
 
         if (count <= 0) {
             throw new ConditionsNotMetException("Count must be positive");
         }
 
-        return filmStorage.findAll()
-                .stream()
-                .sorted(Comparator.comparingInt(f -> ((Film) f).getLikedUsersIds().size()).reversed())
-                .limit(count)
+        Collection<Film> films = filmStorage.findPopular(count);
+        Map<Long, Set<Genre>> genresByFilmId = loadGenresByFilmIds(films);
+
+        return films.stream()
+                .map(film -> mapToExtraInfoResponse(film, genresByFilmId))
                 .toList();
+    }
+
+    private Map<Long, Set<Genre>> loadGenresByFilmIds(Collection<Film> films) {
+        return genreStorage.findGenresByFilmIds(
+                films.stream().map(Film::getId).toList()
+        );
+    }
+
+    private FilmExtraInfoResponseDto mapToExtraInfoResponse(Film film, Map<Long, Set<Genre>> genresByFilmId) {
+        Set<Genre> genres = genresByFilmId.getOrDefault(film.getId(), Set.of());
+        Set<GenreResponseDto> genreDtos = genres.stream()
+                .map(GenreMapper::toResponse)
+                .collect(Collectors.toCollection(
+                        () -> new TreeSet<>(Comparator.comparing(GenreResponseDto::getId))));
+
+        return FilmMapper.toExtraInfoResponse(film, null, genreDtos);
     }
 }

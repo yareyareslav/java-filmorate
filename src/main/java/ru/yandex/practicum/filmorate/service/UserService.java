@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -9,17 +10,14 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class UserService {
+
     private final UserStorage userStorage;
 
-    public UserService(UserStorage userStorage) {
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage) {
         this.userStorage = userStorage;
     }
 
@@ -77,9 +75,7 @@ public class UserService {
             currentUser.setBirthday(birthday);
         }
 
-        return userStorage
-                .update(user)
-                .orElseThrow(() -> new NotFoundException("User is not found. User id: " + user.getId()));
+        return userStorage.update(user);
     }
 
     public boolean addFriend(Long id, Long friendId) {
@@ -87,12 +83,11 @@ public class UserService {
 
         checkUsersAreDifferent(id, friendId);
 
-        User user = checkUserExists(id);
-        User friend = checkUserExists(friendId);
+        checkUserExists(id);
+        checkUserExists(friendId);
 
         log.info("Add friend ended. User id: {}, Friend id: {}", id, friendId);
-        return user.getFriendsIds().add(friendId)
-                && friend.getFriendsIds().add(id);
+        return userStorage.addFriend(id, friendId);
     }
 
     public boolean removeFriend(Long id, Long friendId) {
@@ -100,25 +95,20 @@ public class UserService {
 
         checkUsersAreDifferent(id, friendId);
 
-        User user = checkUserExists(id);
-        User friend = checkUserExists(friendId);
+        checkUserExists(id);
+        checkUserExists(friendId);
 
         log.info("Remove friend ended. User id: {}, Friend id: {}", id, friendId);
-        return user.getFriendsIds().remove(friendId)
-                && friend.getFriendsIds().remove(id);
+        return userStorage.deleteFriend(id, friendId);
     }
 
     public Collection<User> getFriends(Long id) {
         log.info("Get friends initiated. User id: {}", id);
 
-        User user = checkUserExists(id);
+        checkUserExists(id);
 
         log.info("Get friends ended. User id: {}", id);
-        return user.getFriendsIds()
-                .stream()
-                .map(userStorage::findOne)
-                .flatMap(Optional::stream)
-                .toList();
+        return userStorage.findFriends(id);
     }
 
     public Collection<User> getCommonFriends(Long id, Long friendId) {
@@ -126,18 +116,11 @@ public class UserService {
 
         checkUsersAreDifferent(id, friendId);
 
-        User user = checkUserExists(id);
-        User friend = checkUserExists(friendId);
-
-        Set<Long> commonFriendsIds = new HashSet<>(user.getFriendsIds());
-        commonFriendsIds.retainAll(friend.getFriendsIds());
+        checkUserExists(id);
+        checkUserExists(friendId);
 
         log.info("Get common friend ended. User id: {}, Friend id: {}", id, friendId);
-        return commonFriendsIds
-                .stream()
-                .map(userStorage::findOne)
-                .flatMap(Optional::stream)
-                .collect(Collectors.toSet());
+        return userStorage.findCommonFriends(id, friendId);
     }
 
 }

@@ -3,7 +3,10 @@ package ru.yandex.practicum.filmorate.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.dto.OnCreate;
+import ru.yandex.practicum.filmorate.dto.film.FilmExtraInfoResponseDto;
+import ru.yandex.practicum.filmorate.dto.film.FilmRequestDto;
+import ru.yandex.practicum.filmorate.dto.film.FilmResponseDto;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
@@ -19,20 +22,26 @@ public class FilmController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Collection<Film> findAll() {
+    public Collection<FilmExtraInfoResponseDto> findAll() {
         return filmService.findAll();
+    }
+
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public FilmExtraInfoResponseDto findById(@PathVariable Long id) {
+        return filmService.findById(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Film create(@Validated(Film.CreateFilmInfo.class) @RequestBody Film film) {
-        return filmService.create(film);
+    public FilmExtraInfoResponseDto create(@Validated(OnCreate.class) @RequestBody FilmRequestDto dto) {
+        return filmService.create(dto);
     }
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public Film update(@Validated(Film.UpdateFilmInfo.class) @RequestBody Film film) {
-        return filmService.update(film);
+    public FilmResponseDto update(@Validated(OnCreate.class) @RequestBody FilmRequestDto dto) {
+        return filmService.update(dto);
     }
 
     @PutMapping("/{id}/like/{userId}")
@@ -49,7 +58,7 @@ public class FilmController {
 
     @GetMapping("/popular")
     @ResponseStatus(HttpStatus.OK)
-    public Collection<Film> getTopByLikes(@RequestParam(defaultValue = "10") int count) {
+    public Collection<FilmExtraInfoResponseDto> getTopByLikes(@RequestParam(defaultValue = "10") int count) {
         return filmService.getTopByLikes(count);
     }
 }
