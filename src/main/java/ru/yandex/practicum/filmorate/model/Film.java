@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 /**
  * Film.
@@ -24,4 +25,6 @@ public class Film {
     private Long duration;
 
     private Mpa mpa;
+
+    private Set<Genre> genres;
 }

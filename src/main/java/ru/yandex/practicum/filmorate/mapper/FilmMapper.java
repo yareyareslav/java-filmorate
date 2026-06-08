@@ -18,9 +18,9 @@ import java.util.Set;
 public class FilmMapper implements RowMapper<Film> {
     @Override
     public Film mapRow(ResultSet rs, int rowNum) throws SQLException {
-        Long mpaId = rs.getObject("m.id", Long.class);
+        Long mpaId = rs.getObject("mpa_id", Long.class);
         Mpa mpa = mpaId != null
-                ? new Mpa(mpaId, rs.getString("m.name"))
+                ? Mpa.builder().id(mpaId).name(rs.getString("mpa_name")).build()
                 : null;
 
         return Film.builder()

@@ -82,18 +82,21 @@ public class FilmService {
     }
 
     private List<Genre> checkGenresExists(final Set<Long> ids) {
-        return genreStorage
-                .findAllByIds(ids);
+        return genreStorage.findAllByIds(ids);
     }
 
     public Collection<FilmExtraInfoResponseDto> findAll() {
-        return filmStorage.findAll().stream()
-                .map(f -> FilmMapper.toExtraInfoResponse(f, null, null))
+        Collection<Film> films = filmStorage.findAll();
+        Map<Long, Set<Genre>> genresByFilmId = loadGenresByFilmIds(films);
+
+        return films.stream()
+                .map(film -> mapToExtraInfoResponse(film, genresByFilmId))
                 .toList();
     }
 
     public FilmExtraInfoResponseDto findById(final long id) {
-        return mapToExtraInfoResponse(checkFilmExists(id));
+        Film film = checkFilmExists(id);
+        return mapToExtraInfoResponse(film, loadGenresByFilmIds(List.of(film)));
     }
 
     public FilmExtraInfoResponseDto create(final FilmRequestDto filmDto) {
@@ -115,9 +118,9 @@ public class FilmService {
             }
             genreResponseDtos = existingGenres.stream()
                     .map(GenreMapper::toResponse)
-                        .collect(Collectors.toCollection(
-                                () -> new TreeSet<>(Comparator.comparing(GenreResponseDto::getId))
-                        ));
+                    .collect(Collectors.toCollection(
+                            () -> new TreeSet<>(Comparator.comparing(GenreResponseDto::getId))
+                    ));
         }
 
         Mpa mpa = checkMpaExists(filmDto.getMpa().getId());
@@ -127,11 +130,7 @@ public class FilmService {
             filmStorage.addFilmGenresConnection(createdFilm.getId(), existingGenreIds);
         }
 
-        return FilmMapper.toExtraInfoResponse(
-                createdFilm,
-                null,
-                genreResponseDtos
-        );
+        return FilmMapper.toExtraInfoResponse(createdFilm, null, genreResponseDtos);
     }
 
     public FilmResponseDto update(final FilmRequestDto filmDto) {
@@ -189,14 +188,23 @@ public class FilmService {
             throw new ConditionsNotMetException("Count must be positive");
         }
 
-        return filmStorage.findPopular(count).stream()
-                .map(this::mapToExtraInfoResponse)
+        Collection<Film> films = filmStorage.findPopular(count);
+        Map<Long, Set<Genre>> genresByFilmId = loadGenresByFilmIds(films);
+
+        return films.stream()
+                .map(film -> mapToExtraInfoResponse(film, genresByFilmId))
                 .toList();
     }
 
-    private FilmExtraInfoResponseDto mapToExtraInfoResponse(Film film) {
-        TreeSet<GenreResponseDto> genreDtos = genreStorage.findAllGenresOfFilmId(film.getId())
-                .stream()
+    private Map<Long, Set<Genre>> loadGenresByFilmIds(Collection<Film> films) {
+        return genreStorage.findGenresByFilmIds(
+                films.stream().map(Film::getId).toList()
+        );
+    }
+
+    private FilmExtraInfoResponseDto mapToExtraInfoResponse(Film film, Map<Long, Set<Genre>> genresByFilmId) {
+        Set<Genre> genres = genresByFilmId.getOrDefault(film.getId(), Set.of());
+        Set<GenreResponseDto> genreDtos = genres.stream()
                 .map(GenreMapper::toResponse)
                 .collect(Collectors.toCollection(
                         () -> new TreeSet<>(Comparator.comparing(GenreResponseDto::getId))));

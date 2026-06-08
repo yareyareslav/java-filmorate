@@ -24,7 +24,7 @@ import java.util.Set;
 public class FilmDbStorage implements FilmStorage {
     private static final String FILM_WITH_MPA_COLUMNS = """
             f.id, f.name, f.description, f.release_date, f.duration,
-            m.id AS "m.id", m.name AS "m.name"
+            m.id AS mpa_id, m.name AS mpa_name
             """;
     private static final String FIND_ALL_QUERY = """
             SELECT %s
@@ -56,7 +56,7 @@ public class FilmDbStorage implements FilmStorage {
             """;
     private static final String FIND_POPULAR_QUERY = """
             SELECT f.id, f.name, f.description, f.release_date, f.duration,
-                   m.id AS "m.id", m.name AS "m.name"
+                   m.id AS mpa_id, m.name AS mpa_name
             FROM films f
             LEFT JOIN mpa m ON f.mpa_id = m.id
             INNER JOIN film_likes fl ON f.id = fl.film_id
@@ -68,13 +68,12 @@ public class FilmDbStorage implements FilmStorage {
             INSERT INTO film_genre(film_id, genre_id)
             VALUES (?, ?)
             """;
-
     private static final FilmMapper mapper = new FilmMapper();
 
     private final JdbcTemplate jdbc;
 
     public Collection<Film> findAll() {
-        return jdbc.query(FIND_ALL_QUERY, mapper).stream().toList();
+        return jdbc.query(FIND_ALL_QUERY, mapper);
     }
 
     public Optional<Film> findOne(Long id) {

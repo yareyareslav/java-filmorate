@@ -9,10 +9,7 @@ import ru.yandex.practicum.filmorate.mapper.GenreMapper;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -26,12 +23,12 @@ public class GenreDbStorage implements GenreStorage {
             FROM genres
             WHERE id in (%s)
             """;
-    private static final String FIND_ALL_GENRES_BY_FILM_ID = """
-            SELECT g.*
-            FROM genres g
-            JOIN film_genre fg ON g.id = fg.genre_id
-            WHERE fg.film_id = ?
-    """;
+    private static final String FIND_GENRES_BY_FILM_IDS = """
+            SELECT fg.film_id, g.id, g.name
+            FROM film_genre fg
+            JOIN genres g ON g.id = fg.genre_id
+            WHERE fg.film_id IN (%s)
+            """;
 
     private final JdbcTemplate jdbc;
     private static final GenreMapper mapper = new GenreMapper();
@@ -81,7 +78,35 @@ public class GenreDbStorage implements GenreStorage {
     }
 
     @Override
-    public List<Genre> findAllGenresOfFilmId(long filmId) {
-        return jdbc.query(FIND_ALL_GENRES_BY_FILM_ID, mapper, filmId);
+    public Map<Long, Set<Genre>> findGenresByFilmIds(Collection<Long> filmIds) {
+        if (filmIds == null || filmIds.isEmpty()) {
+            return Map.of();
+        }
+
+        Set<Long> uniqueFilmIds = filmIds.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        if (uniqueFilmIds.isEmpty()) {
+            return Map.of();
+        }
+
+        String placeholders = uniqueFilmIds.stream()
+                .map(id -> "?")
+                .collect(Collectors.joining(","));
+        String sqlQuery = FIND_GENRES_BY_FILM_IDS.formatted(placeholders);
+
+        Map<Long, Set<Genre>> genresByFilmId = new HashMap<>();
+        jdbc.query(sqlQuery, rs -> {
+            long filmId = rs.getLong("film_id");
+            Genre genre = Genre.builder()
+                    .id(rs.getLong("id"))
+                    .name(rs.getString("name"))
+                    .build();
+            genresByFilmId
+                    .computeIfAbsent(filmId, id -> new TreeSet<>(Comparator.comparing(Genre::getId)))
+                    .add(genre);
+        }, uniqueFilmIds.toArray());
+
+        return genresByFilmId;
     }
 }

@@ -23,6 +23,7 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -187,8 +188,8 @@ public class FilmServiceTest {
         Film film = filmWithId(1L);
         film.setMpa(Mpa.builder().id(1L).name("G").build());
         when(filmStorage.findOne(1L)).thenReturn(Optional.of(film));
-        when(genreStorage.findAllGenresOfFilmId(1L))
-                .thenReturn(List.of(Genre.builder().id(1L).name("Комедия").build()));
+        when(genreStorage.findGenresByFilmIds(List.of(1L)))
+                .thenReturn(Map.of(1L, Set.of(Genre.builder().id(1L).name("Комедия").build())));
 
         FilmExtraInfoResponseDto result = filmService.findById(1L);
 
@@ -200,7 +201,7 @@ public class FilmServiceTest {
     @Test
     public void findById_filmWithoutMpa_returnFilmWithNullMpa() {
         when(filmStorage.findOne(1L)).thenReturn(Optional.of(filmWithId(1L)));
-        when(genreStorage.findAllGenresOfFilmId(1L)).thenReturn(List.of());
+        when(genreStorage.findGenresByFilmIds(List.of(1L))).thenReturn(Map.of());
 
         FilmExtraInfoResponseDto result = filmService.findById(1L);
 
@@ -282,10 +283,11 @@ public class FilmServiceTest {
                 .build();
 
         when(filmStorage.findPopular(2)).thenReturn(List.of(film1, film2));
-        when(genreStorage.findAllGenresOfFilmId(1L))
-                .thenReturn(List.of(Genre.builder().id(1L).name("Комедия").build()));
-        when(genreStorage.findAllGenresOfFilmId(2L))
-                .thenReturn(List.of(Genre.builder().id(2L).name("Драма").build()));
+        when(genreStorage.findGenresByFilmIds(List.of(1L, 2L)))
+                .thenReturn(Map.of(
+                        1L, Set.of(Genre.builder().id(1L).name("Комедия").build()),
+                        2L, Set.of(Genre.builder().id(2L).name("Драма").build())
+                ));
 
         List<FilmExtraInfoResponseDto> topFilms = filmService.getTopByLikes(2).stream().toList();
 
