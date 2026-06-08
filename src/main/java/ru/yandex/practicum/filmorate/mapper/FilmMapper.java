@@ -6,7 +6,6 @@ import ru.yandex.practicum.filmorate.dto.film.FilmExtraInfoResponseDto;
 import ru.yandex.practicum.filmorate.dto.film.FilmRequestDto;
 import ru.yandex.practicum.filmorate.dto.film.FilmResponseDto;
 import ru.yandex.practicum.filmorate.dto.genre.GenreResponseDto;
-import ru.yandex.practicum.filmorate.dto.mpa.MpaResponseDto;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
