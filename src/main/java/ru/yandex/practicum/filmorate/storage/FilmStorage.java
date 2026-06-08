@@ -13,6 +13,4 @@ public interface FilmStorage extends BaseStorage<Film> {
     Collection<Film> findPopular(Integer limit);
 
     void addFilmGenresConnection(Long filmId, Set<Long> genreIds);
-
-    void addFilmMpaConnection(Long filmId, Long mpaId);
 }

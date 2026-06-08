@@ -58,7 +58,7 @@ public class FilmController {
 
     @GetMapping("/popular")
     @ResponseStatus(HttpStatus.OK)
-    public Collection<FilmResponseDto> getTopByLikes(@RequestParam(defaultValue = "10") int count) {
+    public Collection<FilmExtraInfoResponseDto> getTopByLikes(@RequestParam(defaultValue = "10") int count) {
         return filmService.getTopByLikes(count);
     }
 }

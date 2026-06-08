@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
+import java.sql.Types;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
@@ -21,11 +22,29 @@ import java.util.Set;
 @Slf4j
 @RequiredArgsConstructor
 public class FilmDbStorage implements FilmStorage {
-    private static final String FIND_ALL_QUERY = "SELECT * FROM films";
-    private static final String FIND_ONE_QUERY = "SELECT * FROM films WHERE id = ?";
-    private static final String INSERT_FILM_QUERY = "INSERT INTO films(name, description, duration, release_date)" +
-            "VALUES(?, ?, ?, ?)";
-    private static final String UPDATE_FILM_QUERY = "UPDATE films SET name = ?, description = ?, duration = ?, release_date = ? WHERE id = ?";
+    private static final String FILM_WITH_MPA_COLUMNS = """
+            f.id, f.name, f.description, f.release_date, f.duration,
+            m.id AS "m.id", m.name AS "m.name"
+            """;
+    private static final String FIND_ALL_QUERY = """
+            SELECT %s
+            FROM films f
+            LEFT JOIN mpa m ON f.mpa_id = m.id
+            """.formatted(FILM_WITH_MPA_COLUMNS);
+    private static final String FIND_ONE_QUERY = """
+            SELECT %s
+            FROM films f
+            LEFT JOIN mpa m ON f.mpa_id = m.id
+            WHERE f.id = ?
+            """.formatted(FILM_WITH_MPA_COLUMNS);
+    private static final String INSERT_FILM_QUERY = """
+            INSERT INTO films(name, description, duration, release_date, mpa_id)
+            VALUES(?, ?, ?, ?, ?)
+            """;
+    private static final String UPDATE_FILM_QUERY = """
+            UPDATE films SET name = ?, description = ?, duration = ?, release_date = ?, mpa_id = ?
+            WHERE id = ?
+            """;
     private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE id = ?";
     private static final String INSERT_LIKE_QUERY = """
             INSERT INTO film_likes(film_id, user_id)
@@ -36,30 +55,19 @@ public class FilmDbStorage implements FilmStorage {
             WHERE film_id = ? AND user_id = ?
             """;
     private static final String FIND_POPULAR_QUERY = """
-            SELECT id, name, description, release_date, duration, likes
-            FROM films
-            JOIN (
-                SELECT film_id, COUNT(user_id) AS likes
-                FROM film_likes
-                GROUP BY film_id
-                ORDER BY likes DESC
-                LIMIT ?
-            ) AS pf ON films.id = pf.film_id
+            SELECT f.id, f.name, f.description, f.release_date, f.duration,
+                   m.id AS "m.id", m.name AS "m.name"
+            FROM films f
+            LEFT JOIN mpa m ON f.mpa_id = m.id
+            INNER JOIN film_likes fl ON f.id = fl.film_id
+            GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, m.id, m.name
+            ORDER BY COUNT(fl.user_id) DESC
+            LIMIT ?
             """;
     private static final String INSERT_FILM_GENRE_CONN_QUERY = """
             INSERT INTO film_genre(film_id, genre_id)
             VALUES (?, ?)
             """;
-    private static final String INSERT_FILM_MPA_CONN_QUERY = """
-            INSERT INTO film_mpa(film_id, mpa_id)
-            VALUES (?, ?)
-            """;
-    private static final String FIND_MPA_OF_FILM_QUERY = """
-            SELECT *
-            FROM film_mpa
-            WHERE film_id = ?
-            """;
-
 
     private static final FilmMapper mapper = new FilmMapper();
 
@@ -89,6 +97,11 @@ public class FilmDbStorage implements FilmStorage {
             ps.setString(2, film.getDescription());
             ps.setLong(3, film.getDuration());
             ps.setDate(4, Date.valueOf(film.getReleaseDate()));
+            if (film.getMpa() != null && film.getMpa().getId() != null) {
+                ps.setLong(5, film.getMpa().getId());
+            } else {
+                ps.setNull(5, Types.BIGINT);
+            }
             return ps;
         }, keyHolderFilm);
         if (keyHolderFilm.getKey() == null) {
@@ -109,7 +122,12 @@ public class FilmDbStorage implements FilmStorage {
             ps.setString(2, film.getDescription());
             ps.setLong(3, film.getDuration());
             ps.setDate(4, Date.valueOf(film.getReleaseDate()));
-            ps.setLong(5, id);
+            if (film.getMpa() != null && film.getMpa().getId() != null) {
+                ps.setLong(5, film.getMpa().getId());
+            } else {
+                ps.setNull(5, Types.BIGINT);
+            }
+            ps.setLong(6, id);
             return ps;
         });
         return film;
@@ -157,11 +175,5 @@ public class FilmDbStorage implements FilmStorage {
                     ps.setLong(2, genreId);
                 }
         );
-    }
-
-    @Override
-    public void addFilmMpaConnection(Long filmId, Long mpaId) {
-        log.trace("Add film mpa connection initiated");
-        jdbc.update(INSERT_FILM_MPA_CONN_QUERY, filmId, mpaId);
     }
 }

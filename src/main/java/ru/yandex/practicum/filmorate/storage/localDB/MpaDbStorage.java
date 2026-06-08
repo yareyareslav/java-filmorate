@@ -18,12 +18,6 @@ import java.util.Optional;
 public class MpaDbStorage implements MpaStorage {
     private static final String FIND_ALL_QUERY = "SELECT * FROM mpa";
     private static final String FIND_ONE_QUERY = "SELECT * FROM mpa WHERE id = ?";
-    private static final String FIND_MPA_BY_FILM_ID = """
-                SELECT m.*
-                FROM mpa m
-                JOIN film_mpa fm ON m.id = fm.mpa_id
-                WHERE fm.film_id = ?
-                """;
 
     private final JdbcTemplate jdbc;
     private static final MpaMapper mapper = new MpaMapper();
@@ -57,15 +51,4 @@ public class MpaDbStorage implements MpaStorage {
         return null;
     }
 
-    @Override
-    public Optional<Mpa> findMpaByFilmId(long filmId) {
-        log.trace("Find mpa by film id initiated");
-        try {
-            Mpa mpa = jdbc.queryForObject(FIND_MPA_BY_FILM_ID, mapper, filmId);
-            return Optional.ofNullable(mpa);
-        } catch (EmptyResultDataAccessException e) {
-            log.info("User with id {} is not found", filmId);
-            return Optional.empty();
-        }
-    }
 }

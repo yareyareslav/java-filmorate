@@ -23,6 +23,6 @@ public class MpaService {
     public Mpa findOne(Long id) {
         return mpaStorage
                 .findOne(id)
-                .orElseThrow(() -> new NotFoundException("Mpa was not found"));
+                .orElseThrow(() -> new NotFoundException("Mpa was not found. Id: " + id));
     }
 }

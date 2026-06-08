@@ -38,5 +38,6 @@ public class FilmRequestDto {
 
     private Set<GenreRequestDto> genres;
 
+    @NotNull(groups = {OnCreate.class})
     private MpaRequestDto mpa;
 }

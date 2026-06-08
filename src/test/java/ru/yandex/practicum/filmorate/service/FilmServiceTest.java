@@ -79,7 +79,9 @@ public class FilmServiceTest {
     @Test
     public void create_validData_returnCreatedFilm() {
         FilmRequestDto dto = validFilmDto();
+        dto.setMpa(new MpaRequestDto(1L));
 
+        when(mpaStorage.findOne(1L)).thenReturn(Optional.of(Mpa.builder().id(1L).name("G").build()));
         when(filmStorage.create(any(Film.class))).thenAnswer(invocation -> {
             Film film = invocation.getArgument(0);
             film.setId(1L);
@@ -120,7 +122,8 @@ public class FilmServiceTest {
         assertEquals(1L, created.getMpa().getId());
         assertEquals(2, created.getGenres().size());
         verify(filmStorage).addFilmGenresConnection(1L, Set.of(1L, 2L));
-        verify(filmStorage).addFilmMpaConnection(1L, 1L);
+        verify(filmStorage).create(argThat(film ->
+                film.getMpa() != null && film.getMpa().getId().equals(1L)));
     }
 
     @Test
@@ -182,8 +185,8 @@ public class FilmServiceTest {
     @Test
     public void findById_existingFilm_returnFilmWithMpaAndGenres() {
         Film film = filmWithId(1L);
+        film.setMpa(Mpa.builder().id(1L).name("G").build());
         when(filmStorage.findOne(1L)).thenReturn(Optional.of(film));
-        when(mpaStorage.findMpaByFilmId(1L)).thenReturn(Optional.of(Mpa.builder().id(1L).name("G").build()));
         when(genreStorage.findAllGenresOfFilmId(1L))
                 .thenReturn(List.of(Genre.builder().id(1L).name("Комедия").build()));
 
@@ -195,11 +198,15 @@ public class FilmServiceTest {
     }
 
     @Test
-    public void findById_filmWithoutMpa_throwNotFoundException() {
+    public void findById_filmWithoutMpa_returnFilmWithNullMpa() {
         when(filmStorage.findOne(1L)).thenReturn(Optional.of(filmWithId(1L)));
-        when(mpaStorage.findMpaByFilmId(1L)).thenReturn(Optional.empty());
+        when(genreStorage.findAllGenresOfFilmId(1L)).thenReturn(List.of());
 
-        assertThrows(NotFoundException.class, () -> filmService.findById(1L));
+        FilmExtraInfoResponseDto result = filmService.findById(1L);
+
+        assertNotNull(result.getMpa());
+        assertNull(result.getMpa().getId());
+        assertNull(result.getMpa().getName());
     }
 
     @Test
@@ -264,21 +271,30 @@ public class FilmServiceTest {
     @Test
     public void getTopByLikes_returnTopOfCountNumber() {
         Film film1 = filmWithId(1L);
+        film1.setMpa(Mpa.builder().id(1L).name("G").build());
         Film film2 = Film.builder()
                 .id(2L)
                 .name("Test 2")
                 .description("Desc")
                 .duration(60L)
                 .releaseDate(LocalDate.of(2012, 12, 12))
+                .mpa(Mpa.builder().id(2L).name("PG").build())
                 .build();
 
         when(filmStorage.findPopular(2)).thenReturn(List.of(film1, film2));
+        when(genreStorage.findAllGenresOfFilmId(1L))
+                .thenReturn(List.of(Genre.builder().id(1L).name("Комедия").build()));
+        when(genreStorage.findAllGenresOfFilmId(2L))
+                .thenReturn(List.of(Genre.builder().id(2L).name("Драма").build()));
 
-        List<FilmResponseDto> topFilms = filmService.getTopByLikes(2).stream().toList();
+        List<FilmExtraInfoResponseDto> topFilms = filmService.getTopByLikes(2).stream().toList();
 
         assertEquals(2, topFilms.size());
         assertEquals(1L, topFilms.get(0).getId());
         assertEquals(2L, topFilms.get(1).getId());
+        assertEquals(1L, topFilms.get(0).getMpa().getId());
+        assertEquals(1, topFilms.get(0).getGenres().size());
+        assertEquals(1, topFilms.get(1).getGenres().size());
     }
 
     @Test

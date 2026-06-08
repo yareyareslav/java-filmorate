@@ -14,6 +14,7 @@ import ru.yandex.practicum.filmorate.adapters.LocalDateAdapter;
 import ru.yandex.practicum.filmorate.dto.film.FilmExtraInfoResponseDto;
 import ru.yandex.practicum.filmorate.dto.film.FilmRequestDto;
 import ru.yandex.practicum.filmorate.dto.film.FilmResponseDto;
+import ru.yandex.practicum.filmorate.dto.mpa.MpaRequestDto;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -45,6 +46,7 @@ public class FilmControllerTest {
         dto.setDescription("Test test");
         dto.setDuration(60L);
         dto.setReleaseDate(LocalDate.of(2012, 12, 12));
+        dto.setMpa(new MpaRequestDto(1L));
         return dto;
     }
 
@@ -182,12 +184,17 @@ public class FilmControllerTest {
 
     @Test
     void getTopByLikes_returnOk() throws Exception {
+        FilmExtraInfoResponseDto film = filmExtraInfoResponse();
+        film.setMpa(new ru.yandex.practicum.filmorate.dto.mpa.MpaResponseDto(1L, "G"));
+
         Mockito.when(filmService.getTopByLikes(anyInt()))
-                .thenReturn(List.of(filmResponse()));
+                .thenReturn(List.of(film));
 
         mockMvc.perform(get("/films/popular").param("count", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].name").value("Test"));
+                .andExpect(jsonPath("$[0].name").value("Test"))
+                .andExpect(jsonPath("$[0].mpa.id").value(1))
+                .andExpect(jsonPath("$[0].mpa.name").value("G"));
     }
 }

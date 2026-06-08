@@ -8,6 +8,7 @@ import org.springframework.dao.DuplicateKeyException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.localDB.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.localDB.UserDbStorage;
@@ -102,18 +103,33 @@ public class FilmDbStorageTest {
     }
 
     @Test
-    public void addFilmMpaAndGenreConnections_persistRelations() {
+    public void create_withMpa_persistsMpaReference() {
+        Film createdFilm = filmDbStorage.create(Film.builder()
+                .name("Test")
+                .description("Test test")
+                .duration(60L)
+                .releaseDate(LocalDate.of(2000, 12, 12))
+                .mpa(Mpa.builder().id(1L).name("G").build())
+                .build());
+
+        Film foundFilm = filmDbStorage.findOne(createdFilm.getId()).orElseThrow();
+
+        assertNotNull(foundFilm.getMpa());
+        assertEquals(1L, foundFilm.getMpa().getId());
+    }
+
+    @Test
+    public void addFilmGenresConnection_persistRelations() {
         Film film = filmDbStorage.create(Film.builder()
                 .name("Test")
                 .description("Test test")
                 .duration(60L)
                 .releaseDate(LocalDate.of(2000, 12, 12))
+                .mpa(Mpa.builder().id(1L).name("G").build())
                 .build());
 
-        assertDoesNotThrow(() -> {
-            filmDbStorage.addFilmMpaConnection(film.getId(), 1L);
-            filmDbStorage.addFilmGenresConnection(film.getId(), Set.of(1L, 2L));
-        });
+        assertDoesNotThrow(() ->
+                filmDbStorage.addFilmGenresConnection(film.getId(), Set.of(1L, 2L)));
     }
 
     @Test
@@ -130,17 +146,20 @@ public class FilmDbStorageTest {
                 .login("popular_user2")
                 .birthday(LocalDate.of(1991, 1, 1))
                 .build());
+        Mpa mpa = Mpa.builder().id(1L).name("G").build();
         Film film1 = filmDbStorage.create(Film.builder()
                 .name("Film 1")
                 .description("Desc")
                 .duration(60L)
                 .releaseDate(LocalDate.of(2000, 12, 12))
+                .mpa(mpa)
                 .build());
         Film film2 = filmDbStorage.create(Film.builder()
                 .name("Film 2")
                 .description("Desc")
                 .duration(60L)
                 .releaseDate(LocalDate.of(2000, 12, 12))
+                .mpa(mpa)
                 .build());
 
         filmDbStorage.addLike(film1.getId(), user1.getId());

@@ -26,6 +26,6 @@ public class GenreService {
         return genreStorage
                 .findOne(id)
                 .orElseThrow(() ->
-                        new NotFoundException("Genre was not found"));
+                        new NotFoundException("Genre was not found. Id: " + id));
     }
 }
